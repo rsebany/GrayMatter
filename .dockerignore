@@ -1,0 +1,102 @@
+# VCS and documentation
+.git
+.github
+.gitignore
+.dockerignore
+.gitattributes
+docs
+README.md
+LICENSE
+*.md
+
+# Python cache and builds
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.so
+**/*.egg-info
+**/.eggs
+**/.venv
+**/.venv-*
+**/.env
+**/.env.*
+!.env.example
+**/.pytest_cache
+**/.tox
+**/.coverage*
+**/*.egg
+**/*.dist-info
+.tmp-venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Node
+**/.next
+**/node_modules
+frontend/.env.local
+frontend/.env*.local
+frontend/.turbo
+frontend/out
+
+# Dataset and model files
+dataset/
+ai/datasets/
+ai/checkpoints/*
+!ai/checkpoints/.gitkeep
+ai/graymatter_train_results
+ai/results
+ai/preprocessing/cache
+backend/data
+paper
+scripts
+frontend
+.mimocode
+
+# Large model files (should be mounted or downloaded at runtime)
+*.nii
+*.nii.gz
+*.npy
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.pickle
+*.safetensors
+*.h5
+*.hdf5
+*.pb
+*.onnx
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Testing artifacts
+.pytest_cache
+.coverage
+coverage.xml
+htmlcov
+.tox
+.hypothesis
+*.cover
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+.env.local
+
+# Misc
+*.log
+scripts/__pycache__
+ai/scripts/__pycache__
+ai/tests/__pycache__
+ai/notebooks
+ai/service/__pycache__
+backend/tests/__pycache__
+backend/scripts/__pycache__

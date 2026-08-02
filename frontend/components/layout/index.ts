@@ -1,0 +1,11 @@
+export { WorkspaceShell } from "./workspace-shell";
+export type { WorkspaceShellProps } from "./workspace-shell";
+export { GrayMatterPanel } from "./graymatter-panel";
+export { RegistryOverviewHeading } from "./registry-overview-heading";
+export { AppSidebar } from "./app-sidebar";
+export { AppLogo } from "./app-logo";
+export { NavHeader } from "./nav-header";
+export { NavMain } from "./nav-main";
+export { NavUser } from "./nav-user";
+export { Providers } from "./providers";
+export { ThemeProvider, useTheme } from "./theme-provider";

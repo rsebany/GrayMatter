@@ -1,0 +1,157 @@
+# -----------------------------
+# OS-generated files
+# -----------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# -----------------------------
+# Python / FastAPI / MONAI / PyTorch
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+ENV/
+env/
+
+# Python tooling
+.ipynb_checkpoints/
+.jupyter/
+
+# -----------------------------
+# Model weights and local training outputs (not in Git)
+# -----------------------------
+ai/checkpoints/*
+!ai/checkpoints/.gitkeep
+ai/graymatter_train_results/
+ai/runs/
+ai/logs/
+ai/outputs/
+ai/cache/
+ai/wandb/
+ai/mlruns/
+**/tensorboard/
+**/events.out.tfevents.*
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# CV metrics under ai/results/ are tracked (see ai/results/README.md).
+# Rigorous OOF evaluation outputs are local-only.
+ai/results/rigorous_eval/**
+!ai/results/rigorous_eval/README.md
+ai/results/rigorous_eval_*/**
+
+# Paper build artifacts (compiled PDFs, checkpoints, external PDFs)
+paper/main.pdf
+paper/journal/main.pdf
+paper/Ablations/**
+paper/PFE_research_system.pdf
+
+# -----------------------------
+# Dataset: local MRI volumes (see dataset/README.md)
+# -----------------------------
+# Never push dataset contents to GitHub — local only except this README.
+dataset/*
+!dataset/README.md
+
+# Visual QC PNGs (local-only; redundant with dataset/* but kept explicit)
+dataset/reports/visual_qc/
+dataset/reports/visual_qc_index.json
+
+# macOS metadata
+._*
+
+# Medical imaging and archive formats
+*.nii
+*.nii.gz
+*.mha
+*.nrrd
+*.dcm
+*.zip
+*.tar
+
+# Segmentation / prediction caches (runtime and notebook exports)
+*.npy
+
+# -----------------------------
+# Backend runtime uploads and masks
+# -----------------------------
+backend/data/
+
+# Generated mesh files (runtime artifacts, not source)
+backend/static/meshes/
+
+# -----------------------------
+# Node.js / Next.js
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# -----------------------------
+# IDEs / Editors
+# -----------------------------
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------
+# Docker / containers
+# -----------------------------
+*.pid
+*.pid.lock
+docker/.env
+docker-compose.override.yml
+
+# -----------------------------
+# Environment and secrets
+# -----------------------------
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# -----------------------------
+# Logs and temp files
+# -----------------------------
+*.log
+tmp/
+temp/
+.tmp-venv/
+
+# -----------------------------
+# MiMoCode internal data
+# -----------------------------
+.mimocode/
+
+# -----------------------------
+# Ablation training outputs (only README.md tracked)
+# -----------------------------
+ai/results/ablations/**
+!ai/results/ablations/README.md

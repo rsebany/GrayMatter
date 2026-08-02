@@ -1,0 +1,31 @@
+GRAYMATTER third-party attributions
+===================================
+
+This product includes software and assets under their own licenses.
+GRAYMATTER itself is licensed under the Apache License 2.0 (see LICENSE).
+
+---------------------------------------------------------------------------
+Training / evaluation dataset
+---------------------------------------------------------------------------
+
+MONAI Hippocampus dataset (Medical Segmentation Decathlon Task04),
+distributed via the MONAI project and related packaging (e.g. Kaggle
+graymatter-dataset-monai).
+
+  https://monai.io/
+  https://medicaldecathlon.com/
+
+Please cite MONAI and the Medical Segmentation Decathlon when publishing
+results that use this data.
+
+---------------------------------------------------------------------------
+WebXR hospital environment (CC-BY-NC-4.0)
+---------------------------------------------------------------------------
+
+This work is based on "Charité University Hospital - Operating Room"
+(https://sketchfab.com/3d-models/charite-university-hospital-operating-room-9ec46c4d615a4581a235eebfb162f574)
+by ChrisRE (https://sketchfab.com/ChrisRE)
+licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/).
+
+Author must be credited. No commercial use of this asset.
+Full attribution text: frontend/public/xr/backgrounds/hospital/license.txt

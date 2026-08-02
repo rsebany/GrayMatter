@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-graymatter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-graymatter_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-graymatter}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-graymatter}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - graymatter-internal
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      GRAYMATTER_AI_ROOT: ${GRAYMATTER_AI_ROOT:-/app/ai}
+      GRAYMATTER_CHECKPOINT: ${GRAYMATTER_CHECKPOINT:-/app/ai/checkpoints/model.pt}
+      GRAYMATTER_JWT_SECRET: ${GRAYMATTER_JWT_SECRET:-change-me}
+      JWT_SECRET: ${GRAYMATTER_JWT_SECRET:-change-me}
+    volumes:
+      - ./backend:/app
+      - ./ai:/app/ai:ro
+      - ./ai/checkpoints:/app/ai/checkpoints:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 90s
+    networks:
+      - graymatter-internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api}
+        BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8000}
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api}
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - graymatter-internal
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - graymatter-internal
+
+volumes:
+  postgres_data:
+
+networks:
+  graymatter-internal:
+    driver: bridge
