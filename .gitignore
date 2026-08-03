@@ -67,9 +67,8 @@ paper/PFE_research_system.pdf
 # -----------------------------
 # Dataset: local MRI volumes (see dataset/README.md)
 # -----------------------------
-# Never push dataset contents to GitHub — local only except this README.
-dataset/*
-!dataset/README.md
+# Never push dataset contents to GitHub — local only.
+dataset/
 
 # Visual QC PNGs (local-only; redundant with dataset/* but kept explicit)
 dataset/reports/visual_qc/

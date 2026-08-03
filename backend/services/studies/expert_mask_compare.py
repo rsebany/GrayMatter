@@ -109,7 +109,7 @@ def _extract_segment_class_map(expert_slices: list[Any]) -> dict[int, int]:
         for item in seq:
             try:
                 seg_num = int(item.SegmentNumber)
-            except Exception:  # noqa: BLE001
+            except Exception:  # noqa: BLE001, S112
                 continue
 
             class_id: int | None = None
