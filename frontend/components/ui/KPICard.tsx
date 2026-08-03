@@ -1,11 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
+
+interface KPICardProps {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  href?: string;
+  badge?: string;
+  color?: "blue" | "sky" | "amber" | "emerald";
+  can?: boolean;
+}
 
 // Helper internal component to clean up the main render
-export const KPICard = ({ icon, label, value, href, badge, color, can }: any) => {
+export const KPICard = ({ icon, label, value, href, badge, color, can }: KPICardProps) => {
     if (!can) return null;
-    const colors: any = {
+    const colors: Record<NonNullable<KPICardProps["color"]>, string> = {
       blue: "from-blue-500/5 hover:border-blue-500/30 hover:shadow-blue-500/5",
       sky: "from-sky-500/5 hover:border-sky-500/30 hover:shadow-sky-500/5",
       amber: "from-amber-500/5 hover:border-amber-500/30 hover:shadow-amber-500/5",
@@ -13,7 +24,7 @@ export const KPICard = ({ icon, label, value, href, badge, color, can }: any) =>
     };
   
     return (
-      <div className={`group relative overflow-hidden rounded-xl border border-graymatter-border bg-gradient-to-br p-6 transition-all hover:shadow-lg ${colors[color]}`}>
+      <div className={`group relative overflow-hidden rounded-xl border border-graymatter-border bg-gradient-to-br p-6 transition-all hover:shadow-lg ${color ? colors[color] : ""}`}>
         <div className="flex items-start justify-between">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 group-hover:scale-110 transition-transform">
             {icon}

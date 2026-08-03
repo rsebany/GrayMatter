@@ -15,7 +15,7 @@ _JUNK_UPLOAD_PREFIXES = ("._",)
 
 def _is_nifti_filename(name: str) -> bool:
     lower = name.lower()
-    return lower.endswith(".nii.gz") or lower.endswith(".nii")
+    return lower.endswith((".nii.gz", ".nii"))
 
 
 def _is_junk_upload_name(name: str) -> bool:

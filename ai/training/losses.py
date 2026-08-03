@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
-from monai.losses import DiceCELoss
-
 from configs.experiment_config import ExperimentConfig
+from monai.losses import DiceCELoss
 
 
 def compute_inverse_frequency_ce_weights(

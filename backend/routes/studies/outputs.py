@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import re
 from io import BytesIO
+from typing import Annotated
 
 import numpy as np
+from auth import TokenPayload, get_current_user, get_owned_study_or_404
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-
-from auth import TokenPayload, get_current_user, get_owned_study_or_404
 from models.db import get_session
 from schemas import DicomVolumeShape
 from services.ai.inference import generate_mesh_glb
@@ -110,7 +110,7 @@ def _safe_study_file_token(study_id: str) -> str:
 )
 async def get_study_mesh(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> dict:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -140,7 +140,7 @@ async def get_study_mesh(
 )
 async def get_study_mesh_stl(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> dict:
     payload = await get_study_mesh(study_id, current_user)
     stl_url = payload.get("stl_url", "")
@@ -161,7 +161,7 @@ async def get_study_mesh_stl(
 )
 async def get_expert_compare_expert_mesh(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> dict:
     """Build or return cached GLB from ``{study_id}.expert_compare.npy`` (remapped expert labels)."""
     with get_session() as session:
@@ -235,7 +235,7 @@ async def get_expert_compare_expert_mesh(
 )
 async def get_study_mask(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -303,7 +303,7 @@ async def get_study_mask(
 )
 async def get_study_dicom_shape(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> DicomVolumeShape:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)

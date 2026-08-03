@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Dict, List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -86,52 +86,52 @@ class XRView(BaseModel):
 class SegmentationResult(BaseModel):
     id: str
     total_ild_volume_ml: float = Field(..., ge=0)
-    lung_volume_ml: Optional[float] = Field(default=None, ge=0)
-    ild_burden: Optional[float] = Field(default=None, ge=0, le=1)
-    ggo_volume_ml: Optional[float] = Field(default=None, ge=0)
-    reticulation_volume_ml: Optional[float] = Field(default=None, ge=0)
-    consolidation_volume_ml: Optional[float] = Field(default=None, ge=0)
-    ggo_burden: Optional[float] = Field(default=None, ge=0, le=1)
-    reticulation_burden: Optional[float] = Field(default=None, ge=0, le=1)
-    consolidation_burden: Optional[float] = Field(default=None, ge=0, le=1)
-    hippocampus_volume_ml: Optional[float] = Field(default=None, ge=0)
-    left_hippocampus_ml: Optional[float] = Field(default=None, ge=0)
-    right_hippocampus_ml: Optional[float] = Field(default=None, ge=0)
-    zonal_distribution: Dict[str, float] = Field(default_factory=dict)
+    lung_volume_ml: float | None = Field(default=None, ge=0)
+    ild_burden: float | None = Field(default=None, ge=0, le=1)
+    ggo_volume_ml: float | None = Field(default=None, ge=0)
+    reticulation_volume_ml: float | None = Field(default=None, ge=0)
+    consolidation_volume_ml: float | None = Field(default=None, ge=0)
+    ggo_burden: float | None = Field(default=None, ge=0, le=1)
+    reticulation_burden: float | None = Field(default=None, ge=0, le=1)
+    consolidation_burden: float | None = Field(default=None, ge=0, le=1)
+    hippocampus_volume_ml: float | None = Field(default=None, ge=0)
+    left_hippocampus_ml: float | None = Field(default=None, ge=0)
+    right_hippocampus_ml: float | None = Field(default=None, ge=0)
+    zonal_distribution: dict[str, float] = Field(default_factory=dict)
     mesh_url: str
     stl_url: str = ""
-    xr_view: Optional[XRView] = None
+    xr_view: XRView | None = None
     visualization_mode: Literal["2d", "3d", "xr", "mixed"] = "mixed"
-    dice_score: Optional[float] = Field(None, ge=0, le=100)
+    dice_score: float | None = Field(None, ge=0, le=100)
 
 
 class Study(BaseModel):
     id: str
-    description: Optional[str] = None
+    description: str | None = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     modality: str = "mri"
-    segmentation: Optional[SegmentationResult] = None
+    segmentation: SegmentationResult | None = None
 
 
 class Patient(BaseModel):
     id: str
     name: str
-    dateOfBirth: Optional[date] = None
-    notes: Optional[str] = None
-    studies: List[Study] = []
+    dateOfBirth: date | None = None
+    notes: str | None = None
+    studies: list[Study] = []
 
 
 class PatientCreate(BaseModel):
     name: str
-    dateOfBirth: Optional[date] = None
-    notes: Optional[str] = None
-    sex: Optional[str] = None
+    dateOfBirth: date | None = None
+    notes: str | None = None
+    sex: str | None = None
 
 
 class PatientUpdate(BaseModel):
-    name: Optional[str] = None
-    dateOfBirth: Optional[date] = None
-    notes: Optional[str] = None
+    name: str | None = None
+    dateOfBirth: date | None = None
+    notes: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -147,15 +147,15 @@ class StudyListItem(BaseModel):
     ild_fraction: float
     volume_total_mm3: float
     status: Literal["Completed", "Processing", "Pending"]
-    acquisition_date: Optional[datetime] = None
-    zonal_distribution: Dict[str, float] = Field(default_factory=dict)
-    lung_volume_ml: Optional[float] = None
-    ggo_volume_ml: Optional[float] = None
-    reticulation_volume_ml: Optional[float] = None
-    consolidation_volume_ml: Optional[float] = None
-    ggo_burden: Optional[float] = None
-    reticulation_burden: Optional[float] = None
-    consolidation_burden: Optional[float] = None
+    acquisition_date: datetime | None = None
+    zonal_distribution: dict[str, float] = Field(default_factory=dict)
+    lung_volume_ml: float | None = None
+    ggo_volume_ml: float | None = None
+    reticulation_volume_ml: float | None = None
+    consolidation_volume_ml: float | None = None
+    ggo_burden: float | None = None
+    reticulation_burden: float | None = None
+    consolidation_burden: float | None = None
 
 
 class UploadStudyResponse(BaseModel):
@@ -171,20 +171,20 @@ class StudyMetrics(BaseModel):
     study_id: str
     volume_total_mm3: float
     ild_fraction: float
-    hippocampus_volume_ml: Optional[float] = Field(default=None, ge=0)
-    left_hippocampus_ml: Optional[float] = Field(default=None, ge=0)
-    right_hippocampus_ml: Optional[float] = Field(default=None, ge=0)
-    zonal_distribution: Dict[str, float] = Field(default_factory=dict)
-    lung_volume_ml: Optional[float] = None
-    ggo_volume_ml: Optional[float] = None
-    reticulation_volume_ml: Optional[float] = None
-    consolidation_volume_ml: Optional[float] = None
-    ggo_burden: Optional[float] = None
-    reticulation_burden: Optional[float] = None
-    consolidation_burden: Optional[float] = None
-    ild_burden: Optional[float] = None
-    architecture_id: Optional[str] = None
-    architecture_label: Optional[str] = None
+    hippocampus_volume_ml: float | None = Field(default=None, ge=0)
+    left_hippocampus_ml: float | None = Field(default=None, ge=0)
+    right_hippocampus_ml: float | None = Field(default=None, ge=0)
+    zonal_distribution: dict[str, float] = Field(default_factory=dict)
+    lung_volume_ml: float | None = None
+    ggo_volume_ml: float | None = None
+    reticulation_volume_ml: float | None = None
+    consolidation_volume_ml: float | None = None
+    ggo_burden: float | None = None
+    reticulation_burden: float | None = None
+    consolidation_burden: float | None = None
+    ild_burden: float | None = None
+    architecture_id: str | None = None
+    architecture_label: str | None = None
 
 
 class ArchitectureOption(BaseModel):
@@ -193,7 +193,7 @@ class ArchitectureOption(BaseModel):
     id: str
     label: str
     builder: str
-    best_val_dice: Optional[float] = Field(default=None, ge=0, le=1)
+    best_val_dice: float | None = Field(default=None, ge=0, le=1)
     is_default: bool = False
     available: bool = True
 
@@ -207,38 +207,38 @@ class ExpertMaskCompareResponse(BaseModel):
     """``POST /studies/upload/expert-mask-compare``."""
 
     study_id: str
-    expert_shape: List[int] = Field(..., min_length=3, max_length=3)
-    prediction_shape: List[int] = Field(..., min_length=3, max_length=3)
-    dice: Dict[str, float] = Field(default_factory=dict)
+    expert_shape: list[int] = Field(..., min_length=3, max_length=3)
+    prediction_shape: list[int] = Field(..., min_length=3, max_length=3)
+    dice: dict[str, float] = Field(default_factory=dict)
     expert_label_max_seen: int = Field(..., ge=0)
     expert_labels_were_clipped: bool = False
     expert_remap_mode: str = "unknown"
-    expert_remap_note: Optional[str] = None
+    expert_remap_note: str | None = None
     expert_labels_were_remapped: bool = False
-    prediction_remap_mode: Optional[str] = None
-    prediction_remap_note: Optional[str] = None
-    prediction_labels_were_remapped: Optional[bool] = None
-    mapping_source: Optional[str] = None
-    mapping_confidence: Optional[str] = None
-    comparison_scope: Optional[str] = None
-    mapping_failure_reason_code: Optional[str] = None
-    expert_has_ggo: Optional[bool] = None
-    expert_has_reticulation: Optional[bool] = None
-    expert_has_consolidation: Optional[bool] = None
-    prediction_has_ggo: Optional[bool] = None
-    prediction_has_reticulation: Optional[bool] = None
-    prediction_has_consolidation: Optional[bool] = None
-    voxel_count_expert: Dict[str, int] = Field(default_factory=dict)
-    voxel_count_prediction: Dict[str, int] = Field(default_factory=dict)
-    dice_vacuous_both_empty: Dict[str, bool] = Field(default_factory=dict)
+    prediction_remap_mode: str | None = None
+    prediction_remap_note: str | None = None
+    prediction_labels_were_remapped: bool | None = None
+    mapping_source: str | None = None
+    mapping_confidence: str | None = None
+    comparison_scope: str | None = None
+    mapping_failure_reason_code: str | None = None
+    expert_has_ggo: bool | None = None
+    expert_has_reticulation: bool | None = None
+    expert_has_consolidation: bool | None = None
+    prediction_has_ggo: bool | None = None
+    prediction_has_reticulation: bool | None = None
+    prediction_has_consolidation: bool | None = None
+    voxel_count_expert: dict[str, int] = Field(default_factory=dict)
+    voxel_count_prediction: dict[str, int] = Field(default_factory=dict)
+    dice_vacuous_both_empty: dict[str, bool] = Field(default_factory=dict)
     foreground_overlap_voxels: int = Field(default=0, ge=0)
     expert_foreground_voxels: int = Field(default=0, ge=0)
     prediction_foreground_voxels: int = Field(default=0, ge=0)
     voxel_agreement_fraction: float = Field(default=0.0, ge=0.0, le=1.0)
-    interpretation_hint: Optional[str] = None
-    expert_stack_mode: Optional[str] = None
-    expert_inplane_correction: Optional[str] = None
-    expert_slices_matched: Optional[int] = Field(default=None, ge=0)
+    interpretation_hint: str | None = None
+    expert_stack_mode: str | None = None
+    expert_inplane_correction: str | None = None
+    expert_slices_matched: int | None = Field(default=None, ge=0)
 
 
 # ---------------------------------------------------------------------------
@@ -260,20 +260,20 @@ class DicomVolumeShape(BaseModel):
 class SegmentationGeometry(BaseModel):
     """Voxel grid metadata for segmentation revisions."""
 
-    shape_zyx: List[int] = Field(..., min_length=3, max_length=3)
-    spacing_zyx_mm: List[float] = Field(..., min_length=3, max_length=3)
+    shape_zyx: list[int] = Field(..., min_length=3, max_length=3)
+    spacing_zyx_mm: list[float] = Field(..., min_length=3, max_length=3)
     orientation: str = "zyx"
 
     @field_validator("shape_zyx")
     @classmethod
-    def _validate_shape(cls, value: List[int]) -> List[int]:
+    def _validate_shape(cls, value: list[int]) -> list[int]:
         if len(value) != 3 or any(int(v) <= 0 for v in value):
             raise ValueError("shape_zyx must contain exactly 3 positive integers")
         return [int(v) for v in value]
 
     @field_validator("spacing_zyx_mm")
     @classmethod
-    def _validate_spacing(cls, value: List[float]) -> List[float]:
+    def _validate_spacing(cls, value: list[float]) -> list[float]:
         if len(value) != 3 or any(float(v) <= 0 for v in value):
             raise ValueError("spacing_zyx_mm must contain exactly 3 positive values")
         return [float(v) for v in value]
@@ -283,9 +283,9 @@ class SegmentationRevisionCreate(BaseModel):
     """Slicer / AI push payload for ``POST .../segmentation-revisions``."""
 
     source: Literal["ai", "slicer", "slicer_bridge", "manual"] = "slicer_bridge"
-    revision_note: Optional[str] = None
+    revision_note: str | None = None
     geometry: SegmentationGeometry
-    labels: Dict[str, int] = Field(
+    labels: dict[str, int] = Field(
         default_factory=lambda: {
             "background": 0,
             "ggo": 1,
@@ -299,27 +299,27 @@ class SegmentationRevisionCreate(BaseModel):
 class SegmentationRevisionInfo(BaseModel):
     revision_id: int
     source: str
-    revision_note: Optional[str] = None
+    revision_note: str | None = None
     created_at: datetime
     geometry: SegmentationGeometry
-    labels: Dict[str, int]
+    labels: dict[str, int]
     mask_url: str
-    mesh_url: Optional[str] = None
+    mesh_url: str | None = None
 
 
 class SegmentationSyncStatus(BaseModel):
     study_id: str
     current_revision_id: int
-    latest: Optional[SegmentationRevisionInfo] = None
+    latest: SegmentationRevisionInfo | None = None
 
 
 class SegmentationUpdateResponse(BaseModel):
     study_id: str
     revision_id: int
     accepted_at: datetime
-    mesh_url: Optional[str] = None
-    stl_url: Optional[str] = None
-    metrics: Dict[str, float] = Field(default_factory=dict)
+    mesh_url: str | None = None
+    stl_url: str | None = None
+    metrics: dict[str, float] = Field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -351,17 +351,17 @@ class PractitionerSettings(BaseModel):
     in_app_alerts: bool = True
     default_view: str = "2d"
     unit_measurement: VolumeDisplayUnit = "mm"
-    pacs_api_key: Optional[str] = None
-    pacs_endpoint: Optional[str] = None
+    pacs_api_key: str | None = None
+    pacs_endpoint: str | None = None
 
 
 class PractitionerSettingsUpdate(BaseModel):
-    email_on_analysis: Optional[bool] = None
-    in_app_alerts: Optional[bool] = None
-    default_view: Optional[str] = None
-    unit_measurement: Optional[VolumeDisplayUnit] = None
-    pacs_api_key: Optional[str] = None
-    pacs_endpoint: Optional[str] = None
+    email_on_analysis: bool | None = None
+    in_app_alerts: bool | None = None
+    default_view: str | None = None
+    unit_measurement: VolumeDisplayUnit | None = None
+    pacs_api_key: str | None = None
+    pacs_endpoint: str | None = None
 
     @field_validator("unit_measurement", mode="before")
     @classmethod
@@ -383,22 +383,23 @@ class Notification(BaseModel):
     title: str
     message: str = ""
     type: str = "info"
-    read_at: Optional[str] = None
+    read_at: str | None = None
     created_at: str
 
 
 class NotificationListResponse(BaseModel):
     unread_count: int
-    notifications: List[Notification]
+    notifications: list[Notification]
 
 
 class NotificationCreate(BaseModel):
     title: str
-    message: Optional[str] = None
-    type: Optional[str] = "info"
+    message: str | None = None
+    type: str | None = "info"
 
 
 __all__ = [
+    "AdminUserListItem",
     "AuthResponse",
     "DicomVolumeShape",
     "ExpertMaskCompareResponse",
@@ -424,7 +425,6 @@ __all__ = [
     "StudyListItem",
     "StudyMetrics",
     "UploadStudyResponse",
-    "AdminUserListItem",
     "UserResponse",
     "VolumeDisplayUnit",
     "XRView",

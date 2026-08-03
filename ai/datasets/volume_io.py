@@ -9,7 +9,6 @@ from typing import Any
 import nibabel as nib
 import numpy as np
 import SimpleITK as sitk
-
 from utils import affines_are_compatible
 
 

@@ -1,8 +1,6 @@
 """Hippocampus segmentation metrics and expert-vs-AI Dice."""
 from __future__ import annotations
 
-from typing import Dict, Optional, Tuple
-
 import numpy as np
 
 from services.ai.constants import CLASS_LABELS, LEGACY_VOLUME_KEYS
@@ -20,7 +18,7 @@ __all__ = [
     "mask_label_histogram_u8",
 ]
 
-def compute_hippocampus_volume_ml(mask: np.ndarray, spacing: Tuple[float, float, float]) -> float:
+def compute_hippocampus_volume_ml(mask: np.ndarray, spacing: tuple[float, float, float]) -> float:
     voxel_vol_mm3 = spacing[0] * spacing[1] * spacing[2]
     vol_ml = (np.count_nonzero(mask > 0) * voxel_vol_mm3) / 1000.0
     return float(round(vol_ml, 4))
@@ -28,12 +26,12 @@ def compute_hippocampus_volume_ml(mask: np.ndarray, spacing: Tuple[float, float,
 
 def compute_class_metrics(
     mask: np.ndarray,
-    spacing: Tuple[float, float, float],
-    lung_mask: Optional[np.ndarray] = None,
-) -> Dict[str, float]:
+    spacing: tuple[float, float, float],
+    lung_mask: np.ndarray | None = None,
+) -> dict[str, float]:
     del lung_mask
     voxel_vol_mm3 = float(spacing[0] * spacing[1] * spacing[2])
-    metrics: Dict[str, float] = {}
+    metrics: dict[str, float] = {}
     total_fg_voxels = 0
 
     for label_id, key in CLASS_LABELS.items():
@@ -86,7 +84,7 @@ def build_zonal_label_volume(mask: np.ndarray) -> np.ndarray:
     return labels
 
 
-def estimate_zonal_distribution(mask: np.ndarray) -> Dict[str, float]:
+def estimate_zonal_distribution(mask: np.ndarray) -> dict[str, float]:
     labels = build_zonal_label_volume(mask)
     counts = {
         "Upper": int(np.count_nonzero(labels == 1)),
@@ -103,7 +101,7 @@ build_lobar_label_volume = build_zonal_label_volume
 estimate_lobar_distribution = estimate_zonal_distribution
 
 
-def compute_dice_against_ground_truth(study_id: str, mask: np.ndarray) -> Optional[float]:
+def compute_dice_against_ground_truth(study_id: str, mask: np.ndarray) -> float | None:
     del study_id, mask
     return None
 
@@ -120,7 +118,7 @@ def _dice_binary_mask(a: np.ndarray, b: np.ndarray) -> float:
     return 2.0 * inter / float(sa + sb)
 
 
-def mask_label_histogram_u8(vol: np.ndarray, *, max_label: int = 2) -> Dict[str, int]:
+def mask_label_histogram_u8(vol: np.ndarray, *, max_label: int = 2) -> dict[str, int]:
     v = np.asarray(vol, dtype=np.uint8).ravel()
     return {str(i): int(np.count_nonzero(v == i)) for i in range(max_label + 1)}
 
@@ -128,10 +126,10 @@ def mask_label_histogram_u8(vol: np.ndarray, *, max_label: int = 2) -> Dict[str,
 def expert_prediction_compare_diagnostics(
     expert: np.ndarray,
     prediction: np.ndarray,
-) -> Dict[str, object]:
+) -> dict[str, object]:
     ex = np.asarray(expert, dtype=np.uint8)
     pr = np.asarray(prediction, dtype=np.uint8)
-    dice_vacuous: Dict[str, bool] = {}
+    dice_vacuous: dict[str, bool] = {}
     for label_id, key in CLASS_LABELS.items():
         dice_vacuous[key] = bool(
             np.count_nonzero(ex == label_id) == 0
@@ -172,14 +170,14 @@ def expert_prediction_compare_diagnostics(
 def compute_expert_vs_prediction_dice(
     ground_truth: np.ndarray,
     prediction: np.ndarray,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     if ground_truth.shape != prediction.shape:
         raise ValueError(
             f"Shape mismatch: expert {ground_truth.shape} vs prediction {prediction.shape}"
         )
     gt = ground_truth.astype(np.uint8, copy=False)
     pr = prediction.astype(np.uint8, copy=False)
-    out: Dict[str, float] = {}
+    out: dict[str, float] = {}
     dices: list[float] = []
     for label_id, key in CLASS_LABELS.items():
         d = _dice_binary_mask(gt == label_id, pr == label_id)

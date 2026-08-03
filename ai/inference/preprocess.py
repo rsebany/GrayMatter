@@ -1,5 +1,5 @@
-from io import BytesIO
 import tempfile
+from io import BytesIO
 from pathlib import Path
 
 import boto3
@@ -7,7 +7,6 @@ import nibabel as nib
 import numpy as np
 from botocore.client import Config
 from botocore.exceptions import ClientError
-
 from inference.runtime_settings import get_settings
 from preprocessing.transforms import preprocess_image_array
 

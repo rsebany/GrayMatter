@@ -6,14 +6,13 @@ import json
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 import numpy as np
 from fastapi import HTTPException, status
-from scipy.ndimage import gaussian_filter
-
 from models.db import get_session
 from models.models import StudyORM
+from scipy.ndimage import gaussian_filter
 from services.ai.mri_pipeline import NiftiInputError
 from services.core.paths import (
     BACKEND_AI_ROOT,
@@ -40,6 +39,7 @@ __all__ = [
     "STATIC_MESH_DIR",
     "WEIGHTS_PATH",
     "StudyVolume",
+    "_clear_study_volume_cache",
     "_ct_hu_plane_to_lung_window_rgb",
     "_dicom_series_spacing_mm",
     "_ensure_study_dicom_dir",
@@ -49,7 +49,6 @@ __all__ = [
     "_plane_to_display_rgb",
     "_resolve_study_nifti_path",
     "_study_has_dicom_series",
-    "_clear_study_volume_cache",
 ]
 
 # ---------------------------------------------------------------------------
@@ -219,7 +218,7 @@ def _ensure_study_dicom_dir(study_id: str) -> Path:
             try:
                 study_dicom_dir.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copytree(volume_path, study_dicom_dir, dirs_exist_ok=True)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 raise HTTPException(
                     status_code=500,
                     detail=f"Failed to reconstruct DICOM data from volume_path: {exc}",
@@ -227,7 +226,7 @@ def _ensure_study_dicom_dir(study_id: str) -> Path:
     return study_dicom_dir
 
 
-def _load_dicom_volume_and_slices(study_dicom_dir: Path) -> tuple[np.ndarray, List[Any]]:
+def _load_dicom_volume_and_slices(study_dicom_dir: Path) -> tuple[np.ndarray, list[Any]]:
     """Stack sorted DICOM into (Z, Y, X) volume + pydicom datasets for HU metadata."""
     slices = read_sorted_dicom_slices(study_dicom_dir)
     if not slices:
@@ -242,7 +241,7 @@ def _load_dicom_volume_and_slices(study_dicom_dir: Path) -> tuple[np.ndarray, Li
     return volume, slices
 
 
-def _dicom_series_spacing_mm(slices: List[Any]) -> tuple[float, float, float]:
+def _dicom_series_spacing_mm(slices: list[Any]) -> tuple[float, float, float]:
     """Spacing mm (z, y, x) matching (D, H, W) volume order."""
     return spacing_zyx_mm(slices, mode="viewer")
 
@@ -254,17 +253,17 @@ def _dicom_series_spacing_mm(slices: List[Any]) -> tuple[float, float, float]:
 
 def _legacy_patient_json(
     *,
-    patient_id: Optional[str],
-    patient_name: Optional[str],
-    date_of_birth: Optional[str],
-    clinical_notes: Optional[str],
+    patient_id: str | None,
+    patient_name: str | None,
+    date_of_birth: str | None,
+    clinical_notes: str | None,
 ) -> str:
     resolved_name = (patient_name or "").strip()
     resolved_id = (patient_id or "").strip()
     if not resolved_name:
         resolved_name = resolved_id or "Unknown Patient"
 
-    payload: Dict[str, Any] = {
+    payload: dict[str, Any] = {
         "name": resolved_name,
         "dob": date_of_birth,
         "sex": "U",

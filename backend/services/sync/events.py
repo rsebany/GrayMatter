@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 
 class StudyEventHub:

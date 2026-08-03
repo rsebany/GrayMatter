@@ -20,13 +20,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
-from monai.data import CacheDataset
-from torch.utils.data import DataLoader
-
 from configs.experiment_config import ExperimentConfig
 from evaluation.metrics import compute_case_metrics
 from models.hybrid_attention_unet import build_model
+from monai.data import CacheDataset
 from preprocessing.transforms import get_val_transforms, predict_volume
+from torch.utils.data import DataLoader
 
 
 def repo_root_from_ai() -> Path:
@@ -250,7 +249,7 @@ def run_oof_evaluation(
     ]
 
     oof_summary: dict = {
-        "n_cases": int(len(per_case_df)),
+        "n_cases": len(per_case_df),
         "n_folds_evaluated": int(per_case_df["eval_fold"].nunique()) if not per_case_df.empty else 0,
         "skipped_folds": skipped_folds,
     }

@@ -5,17 +5,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from time import perf_counter
+from typing import Annotated
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import StreamingResponse
-
 from auth import (
     TokenPayload,
     get_current_user,
     get_current_user_from_bearer_or_query,
     get_owned_study_or_404,
 )
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from models.db import get_session
 from models.models import SegmentationResultORM
 from schemas import (
@@ -165,7 +165,7 @@ async def _publish_sync_events(
 )
 async def get_segmentation_sync_status(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user_from_bearer_or_query),
+    current_user: Annotated[TokenPayload, Depends(get_current_user_from_bearer_or_query)],
 ) -> SegmentationSyncStatus:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -189,7 +189,7 @@ async def get_segmentation_sync_status(
 async def post_segmentation_revision(
     study_id: str,
     payload: SegmentationRevisionCreate,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> SegmentationUpdateResponse:
     started = perf_counter()
 
@@ -294,7 +294,7 @@ async def post_segmentation_revision(
 async def get_segmentation_revision_mask(
     study_id: str,
     revision_id: int,
-    current_user: TokenPayload = Depends(get_current_user_from_bearer_or_query),
+    current_user: Annotated[TokenPayload, Depends(get_current_user_from_bearer_or_query)],
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -325,7 +325,7 @@ async def get_segmentation_revision_mask(
 )
 async def stream_study_events(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user_from_bearer_or_query),
+    current_user: Annotated[TokenPayload, Depends(get_current_user_from_bearer_or_query)],
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)

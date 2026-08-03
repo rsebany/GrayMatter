@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from auth.config import RESET_TOKEN_EXPIRE_HOURS
 from models.models import ROLE_RADIOLOGIST, UserORM
 from schemas import UserResponse
+
+from auth.config import RESET_TOKEN_EXPIRE_HOURS
 
 # ---------------------------------------------------------------------------
 # Mappers

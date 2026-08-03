@@ -8,13 +8,12 @@ from typing import Any
 
 import numpy as np
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
 from models.models import StudyORM
 from routes.studies.common import StudyVolume, _load_study_volume
 from schemas import SegmentationRevisionCreate, SegmentationRevisionInfo
 from services.core.paths import DICOM_STORAGE
 from services.sync.segmentation import LABEL_CONTRACT
+from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Constants

@@ -235,7 +235,7 @@ export function AddCaseSheet({ open, onOpenChange, onSubmit }: AddCaseSheetProps
                           }
                           if (Array.isArray(detail)) {
                             const msgs = detail
-                              .map((e: any) => {
+                              .map((e) => {
                                 if (e && typeof e === "object") {
                                   return e.msg ?? e.message ?? JSON.stringify(e);
                                 }

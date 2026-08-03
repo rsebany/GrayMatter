@@ -6,15 +6,14 @@ import os
 from typing import Any
 
 import torch
-from monai.data import CacheDataset, Dataset, list_data_collate
-from torch.utils.data import DataLoader
-
 from configs.experiment_config import ExperimentConfig
+from monai.data import CacheDataset, Dataset, list_data_collate
 from preprocessing.transforms import (
     get_deterministic_transforms,
     get_train_augmentations,
     get_val_transforms,
 )
+from torch.utils.data import DataLoader
 
 
 class AugmentedDataset(Dataset):

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from typing import Annotated
 
 from auth import (
     TokenPayload,
@@ -15,10 +13,12 @@ from auth import (
     patients_query,
     user_id_from_token,
 )
+from fastapi import APIRouter, Depends
 from models.db import get_session
 from models.models import PatientORM
 from schemas import Patient, PatientCreate, PatientUpdate
 from services.patients.ids import generate_patient_external_id
+from sqlalchemy.orm import Session
 
 from .common import patient_orm_to_schema
 
@@ -66,7 +66,7 @@ def _allocate_external_id(session: Session) -> str:
     name="patients_list",
 )
 async def list_patients(
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> list[Patient]:
     with get_session() as session:
         patients = (
@@ -88,7 +88,7 @@ async def list_patients(
 )
 async def get_patient(
     patient_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> Patient:
     with get_session() as session:
         return patient_orm_to_schema(
@@ -106,7 +106,7 @@ async def get_patient(
 )
 async def create_patient(
     payload: PatientCreate,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> Patient:
     with get_session() as session:
         patient = PatientORM(
@@ -131,7 +131,7 @@ async def create_patient(
 async def update_patient(
     patient_id: str,
     payload: PatientUpdate,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> Patient:
     with get_session() as session:
         patient = get_owned_patient_or_404(session, patient_id, current_user)
@@ -155,7 +155,7 @@ async def update_patient(
 )
 async def delete_patient(
     patient_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> None:
     with get_session() as session:
         session.delete(get_owned_patient_or_404(session, patient_id, current_user))

@@ -13,7 +13,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from utils import (  # noqa: E402
+from utils import (
     DEFAULT_NUM_FOLDS,
     DEFAULT_RANDOM_SEED,
     balance_patients_across_folds,

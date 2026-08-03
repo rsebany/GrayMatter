@@ -1,8 +1,6 @@
 """Volume orientation and mask resampling."""
 from __future__ import annotations
 
-from typing import Tuple
-
 import numpy as np
 from scipy.ndimage import zoom
 
@@ -23,7 +21,7 @@ def hwd_to_zyx(volume: np.ndarray) -> np.ndarray:
     return np.transpose(volume, (2, 0, 1))
 
 
-def resample_mask_to_shape(mask: np.ndarray, target_shape: Tuple[int, ...]) -> np.ndarray:
+def resample_mask_to_shape(mask: np.ndarray, target_shape: tuple[int, ...]) -> np.ndarray:
     mask = np.asarray(mask, dtype=np.uint8)
     if mask.shape == target_shape:
         return mask

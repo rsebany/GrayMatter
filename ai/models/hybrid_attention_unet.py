@@ -1,9 +1,9 @@
-from typing import Literal, Sequence
+from collections.abc import Sequence
+from typing import Literal
 
 import torch
-import torch.nn as nn
-
 from configs.experiment_config import ExperimentConfig
+from torch import nn
 
 SkipMode = Literal["identity", "coord_only", "full", "attention_gate"]
 

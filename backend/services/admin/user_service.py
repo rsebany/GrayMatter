@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
 from auth import _generate_medical_id, hash_password
 from models.models import (
     ROLE_ADMIN,
@@ -13,6 +10,8 @@ from models.models import (
     UserORM,
 )
 from schemas import AdminUserListItem
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 VALID_ADMIN_ROLES = (ROLE_RADIOLOGIST, ROLE_REFERRING, ROLE_ADMIN)
 

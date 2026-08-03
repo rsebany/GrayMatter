@@ -94,7 +94,10 @@ def main() -> int:
     args = parse_args()
     ensure_backend_api_on_path()
 
-    from services.ai.inference import compute_hippocampus_volume_ml, process_dicom_zip_dir
+    from services.ai.inference import (
+        compute_hippocampus_volume_ml,
+        process_dicom_zip_dir,
+    )
 
     if args.check_native_remap:
         run_native_remap_regression()

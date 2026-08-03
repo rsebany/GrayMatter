@@ -8,6 +8,8 @@ import socket
 import sys
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------------------
 # Environment & paths
 # ---------------------------------------------------------------------------
@@ -54,7 +56,6 @@ if BACKEND_AI_ROOT.is_dir() and str(BACKEND_AI_ROOT) not in sys.path:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
 from models.db import init_db
 from routes.admin import router as admin_router
 from routes.analytics import router as analytics_router
@@ -96,10 +97,10 @@ def _seed_dev_user() -> None:
                 )
             )
             session.commit()
-            logging.info("Seeded dev user: %s", email)
+            logger.info("Seeded dev user: %s", email)
     except Exception:
         session.rollback()
-        logging.exception("Dev user seed skipped")
+        logger.exception("Dev user seed skipped")
     finally:
         session.close()
 
@@ -136,14 +137,14 @@ def startup_event() -> None:
     """Initialize DB and log LAN / Slicer hints for local development."""
     init_db()
     _seed_dev_user()
-    logging.info("Database tables verified/initialized.")
+    logger.info("Database tables verified/initialized.")
     if API_HOST in ("0.0.0.0", ""):
         base = _lan_api_base_url()
-        logging.info(
+        logger.info(
             "API reachable on LAN (headset: same Wi-Fi). Set NEXT_PUBLIC_API_BASE_URL=%s",
             base,
         )
-        logging.info(
+        logger.info(
             "3D Slicer: use scripts/integrations/slicer_bridge.py with --api-base %s "
             "or set GRAYMATTER_API_BASE_URL; push to POST .../studies/{id}/segmentation-revisions",
             base,
@@ -194,7 +195,7 @@ async def health_check() -> dict:
                 meta = json.load(handle)
             ai_model_name = meta.get("model_version", ai_model_name)
         except Exception:
-            logging.exception("Failed to read hybrid_attention_v1.json")
+            logger.exception("Failed to read hybrid_attention_v1.json")
 
     return {
         "status": "online",

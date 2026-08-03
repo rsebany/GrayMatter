@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from typing import Annotated
 
 from auth import TokenPayload, get_current_user_optional
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.db import get_session
 from models.models import NotificationORM
 from schemas import Notification, NotificationCreate, NotificationListResponse
 from services.notifications.service import orm_to_notification
+from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Router
@@ -93,9 +92,9 @@ def _list_for_user(
     name="notifications_list",
 )
 async def list_notifications(
+    current_user: Annotated[TokenPayload | None, Depends(get_current_user_optional)],
     limit: int = 20,
     unread_only: bool = False,
-    current_user: Optional[TokenPayload] = Depends(get_current_user_optional),
 ) -> NotificationListResponse:
     """Notifications for the current user (empty list when unauthenticated)."""
     if not current_user:
@@ -114,7 +113,7 @@ async def list_notifications(
 )
 async def mark_notification_read(
     notification_id: int,
-    current_user: Optional[TokenPayload] = Depends(get_current_user_optional),
+    current_user: Annotated[TokenPayload | None, Depends(get_current_user_optional)],
 ) -> dict:
     user = _require_user(current_user)
     with get_session() as session:
@@ -132,7 +131,7 @@ async def mark_notification_read(
 )
 async def create_notification(
     payload: NotificationCreate,
-    current_user: Optional[TokenPayload] = Depends(get_current_user_optional),
+    current_user: Annotated[TokenPayload | None, Depends(get_current_user_optional)],
 ) -> Notification:
     user = _require_user(current_user)
     with get_session() as session:
@@ -154,7 +153,7 @@ async def create_notification(
 )
 async def delete_notification(
     notification_id: int,
-    current_user: Optional[TokenPayload] = Depends(get_current_user_optional),
+    current_user: Annotated[TokenPayload | None, Depends(get_current_user_optional)],
 ) -> dict:
     user = _require_user(current_user)
     with get_session() as session:
@@ -169,7 +168,7 @@ async def delete_notification(
     name="notifications_clear",
 )
 async def clear_notifications(
-    current_user: Optional[TokenPayload] = Depends(get_current_user_optional),
+    current_user: Annotated[TokenPayload | None, Depends(get_current_user_optional)],
 ) -> dict:
     user = _require_user(current_user)
     with get_session() as session:

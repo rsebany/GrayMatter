@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from fastapi import HTTPException, status
+from models.models import ROLE_ADMIN, PatientORM, StudyORM
 from sqlalchemy.orm import Query, Session
 
 from auth.tokens import TokenPayload
-from models.models import ROLE_ADMIN, PatientORM, StudyORM
 
 
 def user_id_from_token(current_user: TokenPayload) -> int:

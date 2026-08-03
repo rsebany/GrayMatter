@@ -1,6 +1,5 @@
 import time
 
-
 from inference.mesh import mask_to_glb
 from inference.model_manager import ModelManager, model_manager
 from inference.postprocess import clean_mask, compute_volume_mm3_from_affine

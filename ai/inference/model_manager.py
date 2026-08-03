@@ -5,7 +5,6 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-
 from inference.predict import ModelWeightsNotFoundError, Predictor
 from inference.preprocess import storage_client
 from inference.runtime_settings import get_settings
@@ -43,10 +42,9 @@ class ModelManager:
         if not data:
             raise ModelWeightsNotFoundError(f"Model weights object is empty: {weights_key}")
 
-        tmp = tempfile.NamedTemporaryFile(suffix=".pt", delete=False)
-        path = Path(tmp.name)
-        tmp.write(data)
-        tmp.close()
+        with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
+            tmp.write(data)
+            path = Path(tmp.name)
         return path
 
     def get_predictor(self, weights_s3_path: str | None = None) -> Predictor:

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Tuple
 
 import numpy as np
 from scipy.ndimage import zoom
@@ -34,7 +33,7 @@ def load_reference_mask(path: Path) -> np.ndarray:
 
 
 def resample_mask_to_shape(
-    mask: np.ndarray, target_shape: Tuple[int, int, int]
+    mask: np.ndarray, target_shape: tuple[int, int, int]
 ) -> np.ndarray:
     if mask.shape == target_shape:
         return mask.astype(np.uint8, copy=False)
@@ -53,9 +52,9 @@ def dice_for_class(pred: np.ndarray, ref: np.ndarray, class_id: int) -> float:
     return float((2.0 * inter) / denom)
 
 
-def mask_comparison_summary(pred: np.ndarray, ref: np.ndarray) -> Dict[str, object]:
+def mask_comparison_summary(pred: np.ndarray, ref: np.ndarray) -> dict[str, object]:
     classes = (0, 1, 2, 3)
-    per_class: Dict[str, Dict[str, float]] = {}
+    per_class: dict[str, dict[str, float]] = {}
     for c in classes:
         pred_vox = int(np.count_nonzero(pred == c))
         ref_vox = int(np.count_nonzero(ref == c))
@@ -80,9 +79,9 @@ def mask_comparison_summary(pred: np.ndarray, ref: np.ndarray) -> Dict[str, obje
     }
 
 
-def parse_class_dice_thresholds(spec: str) -> Dict[int, float]:
+def parse_class_dice_thresholds(spec: str) -> dict[int, float]:
     """Parse '1:0.80,2:0.75,3:0.75' -> {1: 0.8, 2: 0.75, 3: 0.75}."""
-    out: Dict[int, float] = {}
+    out: dict[int, float] = {}
     if not spec.strip():
         return out
     for token in spec.split(","):
@@ -105,11 +104,11 @@ def parse_class_dice_thresholds(spec: str) -> Dict[int, float]:
 
 
 def evaluate_dice_thresholds(
-    report: Dict[str, object],
+    report: dict[str, object],
     *,
     min_lesion_dice: float | None,
-    min_class_dice: Dict[int, float],
-) -> Tuple[bool, list[str]]:
+    min_class_dice: dict[int, float],
+) -> tuple[bool, list[str]]:
     failures: list[str] = []
     lesion = float(report["lesion_dice"])
     if min_lesion_dice is not None and lesion < min_lesion_dice:

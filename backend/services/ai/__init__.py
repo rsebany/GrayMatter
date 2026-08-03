@@ -4,8 +4,8 @@ from __future__ import annotations
 from services.ai.geometry import resample_mask_to_shape as _resample_mask_to_shape
 from services.ai.inference import (
     CLASS_LABELS,
-    DicomInputError,
     MESH_NODE_NAMES,
+    DicomInputError,
     MeshExportResult,
     build_lobar_label_volume,
     build_zonal_label_volume,
@@ -24,9 +24,9 @@ from services.ai.inference import (
 
 __all__ = [
     "CLASS_LABELS",
+    "MESH_NODE_NAMES",
     "DicomInputError",
     "MeshExportResult",
-    "MESH_NODE_NAMES",
     "_resample_mask_to_shape",
     "build_lobar_label_volume",
     "build_zonal_label_volume",

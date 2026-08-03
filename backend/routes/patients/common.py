@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from models.models import PatientORM
 from schemas import Patient
-from services.patients.ids import generate_patient_external_id  # noqa: F401 — re-export
+from services.patients.ids import generate_patient_external_id
 
 # ---------------------------------------------------------------------------
 # Display name
@@ -89,4 +89,4 @@ def patient_orm_to_schema(p: PatientORM, *, owner_user_id: int | None = None) ->
     )
 
 
-__all__ = ["generate_patient_external_id", "patient_orm_to_schema", "_resolve_patient_name"]
+__all__ = ["_resolve_patient_name", "generate_patient_external_id", "patient_orm_to_schema"]

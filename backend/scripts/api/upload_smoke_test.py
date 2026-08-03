@@ -64,14 +64,14 @@ def main() -> int:
         with zip_path.open("rb") as handle:
             files = {"file": (zip_path.name, handle, "application/zip")}
             resp = requests.post(url, files=files, headers=headers, timeout=args.timeout)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Request failed: {exc}")
         return 1
 
     print(f"[INFO] Status: {resp.status_code}")
     try:
         print(resp.json())
-    except Exception:
+    except Exception:  # noqa: BLE001
         print(resp.text)
     return 0 if resp.ok else 1
 

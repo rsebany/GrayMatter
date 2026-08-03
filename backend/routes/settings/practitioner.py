@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from typing import Annotated
 
 from auth import TokenPayload, get_current_user
+from fastapi import APIRouter, Depends
 from models.db import get_session
 from models.models import SettingsORM
-from schemas import PractitionerSettings, PractitionerSettingsUpdate, _normalize_volume_display_unit
+from schemas import (
+    PractitionerSettings,
+    PractitionerSettingsUpdate,
+    _normalize_volume_display_unit,
+)
+from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Router
@@ -79,7 +84,7 @@ def _apply_settings_update(row: SettingsORM, payload: PractitionerSettingsUpdate
     name="settings_get",
 )
 async def get_settings(
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> PractitionerSettings:
     user_id = int(current_user.sub)
     with get_session() as session:
@@ -94,7 +99,7 @@ async def get_settings(
 )
 async def save_settings(
     payload: PractitionerSettingsUpdate,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> PractitionerSettings:
     user_id = int(current_user.sub)
     with get_session() as session:

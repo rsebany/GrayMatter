@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from typing import List, Optional
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Date,
     DateTime,
     Float,
     ForeignKey,
     Integer,
-    JSON,
     LargeBinary,
     String,
 )
@@ -55,14 +54,14 @@ class UserORM(Base):
     role: Mapped[str] = mapped_column(String, default=ROLE_RADIOLOGIST)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
-    settings: Mapped[Optional["SettingsORM"]] = relationship(
+    settings: Mapped[SettingsORM | None] = relationship(
         "SettingsORM", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    notifications: Mapped[List["NotificationORM"]] = relationship(
+    notifications: Mapped[list[NotificationORM]] = relationship(
         "NotificationORM", back_populates="user", cascade="all, delete-orphan"
     )
-    studies: Mapped[List["StudyORM"]] = relationship("StudyORM", back_populates="user")
-    patients: Mapped[List["PatientORM"]] = relationship(
+    studies: Mapped[list[StudyORM]] = relationship("StudyORM", back_populates="user")
+    patients: Mapped[list[PatientORM]] = relationship(
         "PatientORM", back_populates="user"
     )
 
@@ -75,13 +74,13 @@ class PatientORM(Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
     sex: Mapped[str] = mapped_column(String, nullable=False)
-    notes: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    user_id: Mapped[Optional[int]] = mapped_column(
+    notes: Mapped[str | None] = mapped_column(String, nullable=True)
+    user_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"), nullable=True, index=True
     )
 
-    user: Mapped[Optional["UserORM"]] = relationship("UserORM", back_populates="patients")
-    studies: Mapped[List["StudyORM"]] = relationship(
+    user: Mapped[UserORM | None] = relationship("UserORM", back_populates="patients")
+    studies: Mapped[list[StudyORM]] = relationship(
         "StudyORM", back_populates="patient", cascade="all, delete-orphan"
     )
 
@@ -91,10 +90,10 @@ class StudyORM(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     external_id: Mapped[str] = mapped_column(String, unique=True, index=True)
-    study_uid: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    study_uid: Mapped[str | None] = mapped_column(String, nullable=True)
     modality: Mapped[str] = mapped_column(String, default="mri")
     volume_path: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    description: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     patient_id: Mapped[int] = mapped_column(ForeignKey("patients.id"), nullable=False)
@@ -102,7 +101,7 @@ class StudyORM(Base):
 
     patient: Mapped[PatientORM] = relationship("PatientORM", back_populates="studies")
     user: Mapped[UserORM] = relationship("UserORM", back_populates="studies")
-    segmentation: Mapped[Optional["SegmentationResultORM"]] = relationship(
+    segmentation: Mapped[SegmentationResultORM | None] = relationship(
         "SegmentationResultORM",
         back_populates="study",
         uselist=False,
@@ -123,31 +122,31 @@ class SegmentationResultORM(Base):
 
     total_ild_volume_ml: Mapped[float] = mapped_column(Float)
     ild_fraction: Mapped[float] = mapped_column(Float, default=0.0)
-    lung_volume_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    lung_volume_ml: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    ggo_volume_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    reticulation_volume_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    consolidation_volume_ml: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    ggo_volume_ml: Mapped[float | None] = mapped_column(Float, nullable=True)
+    reticulation_volume_ml: Mapped[float | None] = mapped_column(Float, nullable=True)
+    consolidation_volume_ml: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    ggo_burden: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    reticulation_burden: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    consolidation_burden: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    ggo_burden: Mapped[float | None] = mapped_column(Float, nullable=True)
+    reticulation_burden: Mapped[float | None] = mapped_column(Float, nullable=True)
+    consolidation_burden: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    dice_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    inference_architecture: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    dice_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    inference_architecture: Mapped[str | None] = mapped_column(String, nullable=True)
     zonal_distribution: Mapped[dict] = mapped_column(JSON)
     visualization_mode: Mapped[str] = mapped_column(String, default="mixed")
 
     mesh_url: Mapped[str] = mapped_column(String)
     stl_url: Mapped[str] = mapped_column(String, default="")
-    mask_shape: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    mask_bytes: Mapped[Optional[bytes]] = mapped_column(LargeBinary, nullable=True)
-    mask_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    mask_shape: Mapped[str | None] = mapped_column(String, nullable=True)
+    mask_bytes: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    mask_path: Mapped[str | None] = mapped_column(String, nullable=True)
 
     study_id: Mapped[int] = mapped_column(ForeignKey("studies.id"), unique=True)
 
     study: Mapped[StudyORM] = relationship("StudyORM", back_populates="segmentation")
-    xr_view: Mapped[Optional["XRViewORM"]] = relationship(
+    xr_view: Mapped[XRViewORM | None] = relationship(
         "XRViewORM",
         back_populates="segmentation",
         uselist=False,
@@ -191,8 +190,8 @@ class SettingsORM(Base):
     # Segmentation display unit: mm (mm³), cm (cm³), ml, or percent (lung burden).
     unit_measurement: Mapped[str] = mapped_column(String, default="mm")
 
-    pacs_api_key: Mapped[Optional[str]] = mapped_column(String, nullable=True)
-    pacs_endpoint: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    pacs_api_key: Mapped[str | None] = mapped_column(String, nullable=True)
+    pacs_endpoint: Mapped[str | None] = mapped_column(String, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow
     )
@@ -208,7 +207,7 @@ class NotificationORM(Base):
     title: Mapped[str] = mapped_column(String, nullable=False)
     message: Mapped[str] = mapped_column(String, default="")
     type: Mapped[str] = mapped_column(String, default="info")
-    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     user: Mapped[UserORM] = relationship("UserORM", back_populates="notifications")

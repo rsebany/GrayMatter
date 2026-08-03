@@ -5,7 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from services.ai.constants import CLASS_LABELS, DicomInputError
-from services.ai.mesh import MESH_NODE_NAMES, MeshExportResult, generate_mesh_exports, generate_mesh_glb
+from services.ai.mesh import (
+    MESH_NODE_NAMES,
+    MeshExportResult,
+    generate_mesh_exports,
+    generate_mesh_glb,
+)
 from services.ai.metrics import (
     build_lobar_label_volume,
     build_zonal_label_volume,
@@ -60,10 +65,10 @@ def process_dicom_zip_dir(
 
 __all__ = [
     "CLASS_LABELS",
+    "MESH_NODE_NAMES",
     "DicomInputError",
     "MeshExportResult",
     "NiftiInputError",
-    "MESH_NODE_NAMES",
     "build_lobar_label_volume",
     "build_zonal_label_volume",
     "compute_class_metrics",

@@ -10,7 +10,6 @@ from typing import Any
 
 import numpy as np
 
-
 LABEL_CONTRACT: dict[str, int] = {
     "background": 0,
     "left": 1,

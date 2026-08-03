@@ -2,7 +2,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-
 from inference.preprocess import get_runtime_config
 from models.hybrid_attention_unet import build_model
 from preprocessing.transforms import predict_volume_numpy

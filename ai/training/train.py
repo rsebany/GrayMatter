@@ -14,9 +14,8 @@ if str(_AI_ROOT) not in sys.path:
 
 import numpy as np
 import torch
-from monai.utils import set_determinism
-
 from configs.experiment_config import load_experiment_config
+from monai.utils import set_determinism
 from training.loops import run_fold_training
 
 VARIANT_CONFIGS: dict[str, tuple[str, str]] = {

@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Annotated
 
 from auth import require_role
 from auth.tokens import TokenPayload
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.db import get_session
 from schemas import AdminCreateUserRequest, AdminUpdateUserRequest, AdminUserListItem
-from services.admin.user_service import create_user, delete_user, list_users, update_user
+from services.admin.user_service import (
+    create_user,
+    delete_user,
+    list_users,
+    update_user,
+)
 
 router = APIRouter()
 
@@ -38,7 +44,7 @@ def _http_error(exc: Exception) -> HTTPException:
     name="admin_list_users",
 )
 def admin_list_users(
-    _admin: TokenPayload = Depends(require_role("user_management")),
+    _admin: Annotated[TokenPayload, Depends(require_role("user_management"))],
 ) -> list[AdminUserListItem]:
     """Accounts without password hashes — for the admin dashboard."""
     with get_session() as session:
@@ -54,7 +60,7 @@ def admin_list_users(
 )
 def admin_create_user(
     body: AdminCreateUserRequest,
-    _admin: TokenPayload = Depends(require_role("user_management")),
+    _admin: Annotated[TokenPayload, Depends(require_role("user_management"))],
 ) -> AdminUserListItem:
     with get_session() as session:
         try:
@@ -78,7 +84,7 @@ def admin_create_user(
 def admin_update_user(
     user_id: int,
     body: AdminUpdateUserRequest,
-    _admin: TokenPayload = Depends(require_role("user_management")),
+    _admin: Annotated[TokenPayload, Depends(require_role("user_management"))],
 ) -> AdminUserListItem:
     with get_session() as session:
         try:
@@ -102,7 +108,7 @@ def admin_update_user(
 )
 def admin_delete_user(
     user_id: int,
-    admin: TokenPayload = Depends(require_role("user_management")),
+    admin: Annotated[TokenPayload, Depends(require_role("user_management"))],
 ) -> None:
     with get_session() as session:
         try:

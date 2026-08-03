@@ -74,10 +74,13 @@ export function useDicomLoader(
           setFiles(loadedFiles);
           setStatus("loaded");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (cancelled) return;
 
-        const rawMessage: string = err?.message ?? "";
+        const rawMessage: string = err instanceof Error ? err.message : "";
+        const timedOut =
+          err instanceof Error &&
+          (err as { code?: string }).code === "ECONNABORTED";
         if (
           /DICOM series is not available on the server for this study/i.test(
             rawMessage,
@@ -92,7 +95,7 @@ export function useDicomLoader(
 
         setStatus("failed");
         const message =
-          err?.code === "ECONNABORTED" || /timeout/i.test(rawMessage)
+          timedOut || /timeout/i.test(rawMessage)
             ? "Download timed out. Try again or use a smaller series."
             : rawMessage || "Failed to load DICOM.";
         setError(message);

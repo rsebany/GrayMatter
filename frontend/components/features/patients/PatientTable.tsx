@@ -100,7 +100,7 @@ export function PatientTable({
                 if (typeof detail === "string") return detail;
                 if (Array.isArray(detail)) {
                   return detail
-                    .map((e: any) =>
+                    .map((e) =>
                       e && typeof e === "object"
                         ? e.msg ?? e.message ?? JSON.stringify(e)
                         : String(e)

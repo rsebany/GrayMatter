@@ -42,7 +42,7 @@ def main() -> int:
             _strip_deep_supervision_keys,
             load_trained_model,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"[ERROR] Failed to import backend-ai modules: {exc}")
         return 1
 

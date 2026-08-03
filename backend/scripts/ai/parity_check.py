@@ -53,7 +53,7 @@ def main() -> int:
     args = parser.parse_args()
 
     ensure_backend_api_on_path()
-    from services.ai.inference import process_dicom_zip_dir  # noqa: E402
+    from services.ai.inference import process_dicom_zip_dir
 
     dicom_dir = Path(args.dicom_dir).resolve()
     weights_path = Path(args.weights).resolve()

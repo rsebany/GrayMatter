@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
+from models.db import get_session
+from models.models import ROLE_RADIOLOGIST, UserORM
+from schemas import AuthResponse, LoginRequest, SignupRequest, UserResponse
 from sqlalchemy.orm import Session
 
 from auth import (
@@ -13,9 +18,6 @@ from auth import (
     verify_password,
 )
 from auth.tokens import TokenPayload
-from models.db import get_session
-from models.models import ROLE_RADIOLOGIST, UserORM
-from schemas import AuthResponse, LoginRequest, SignupRequest, UserResponse
 
 from .common import token_data, user_to_response
 
@@ -98,7 +100,7 @@ def signup(body: SignupRequest) -> AuthResponse:
     summary="Current user profile",
     name="auth_me",
 )
-def me(current_user: TokenPayload = Depends(get_current_user)) -> UserResponse:
+def me(current_user: Annotated[TokenPayload, Depends(get_current_user)]) -> UserResponse:
     """User claims from the bearer JWT."""
     return UserResponse(
         id=int(current_user.sub),

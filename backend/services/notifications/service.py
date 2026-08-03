@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
 
 from models.db import get_session
 from models.models import NotificationORM, UserORM
@@ -27,7 +26,7 @@ def create_notification_sync(
     title: str,
     message: str = "",
     notif_type: str = "info",
-    user_id: Optional[int] = None,
+    user_id: int | None = None,
 ) -> None:
     if user_id is None:
         raise ValueError("user_id is required to create a notification")
@@ -89,5 +88,5 @@ def orm_to_notification(n: NotificationORM) -> Notification:
         message=n.message or "",
         type=n.type or "info",
         read_at=n.read_at.isoformat() if n.read_at else None,
-        created_at=n.created_at.isoformat() if n.created_at else datetime.utcnow().isoformat(),
+        created_at=n.created_at.isoformat() if n.created_at else datetime.now(timezone.utc).isoformat(),
     )

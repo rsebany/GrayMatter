@@ -33,12 +33,12 @@ def _snapshot_orm_modules() -> dict[str, Any]:
 
 
 def _save_orm_modules() -> None:
-    global _orm_modules_snapshot  # noqa: PLW0603
+    global _orm_modules_snapshot
     _orm_modules_snapshot = _snapshot_orm_modules()
 
 
 def _restore_orm_modules() -> None:
-    global _orm_modules_snapshot  # noqa: PLW0603
+    global _orm_modules_snapshot
     if not _orm_modules_snapshot:
         return
     sys.modules.update(_orm_modules_snapshot)
@@ -146,7 +146,10 @@ def _run_model_on_roi(
     _ensure_backend_ai_on_path(backend_ai_root)
     try:
         from models.hybrid_attention_unet import build_model
-        from preprocessing.transforms import predict_volume_numpy, preprocess_image_array
+        from preprocessing.transforms import (
+            predict_volume_numpy,
+            preprocess_image_array,
+        )
     finally:
         _restore_orm_modules()
 
@@ -332,9 +335,9 @@ def process_dicom_study(
 
 __all__ = [
     "NiftiInputError",
+    "_ensure_backend_ai_on_path",
     "hippocampus_metrics_to_legacy",
     "process_dicom_study",
     "process_nifti_study",
     "process_volume_study",
-    "_ensure_backend_ai_on_path",
 ]

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import torch
+from configs.experiment_config import ExperimentConfig
 from monai.inferers import sliding_window_inference
 from monai.transforms import (
     AsDiscreted,
@@ -19,11 +20,9 @@ from monai.transforms import (
     RandRotated,
     ResizeWithPadOrCropd,
     ScaleIntensityRanged,
-    SpatialPadd,
     Spacingd,
+    SpatialPadd,
 )
-
-from configs.experiment_config import ExperimentConfig
 
 
 def _intensity_transform(config: ExperimentConfig):

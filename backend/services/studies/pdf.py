@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import List, Optional, Tuple
 
 import matplotlib
 
@@ -13,7 +12,7 @@ import qrcode
 from matplotlib.backends.backend_pdf import PdfPages
 
 # (label, volume in mL or None)
-PerClassRow = Tuple[str, Optional[float]]
+PerClassRow = tuple[str, float | None]
 
 __all__ = ["PerClassRow", "build_ild_study_report_pdf"]
 
@@ -27,7 +26,7 @@ def build_ild_study_report_pdf(
     ild_burden_fraction: float,
     lung_volume_ml: float,
     zonal_distribution: dict[str, float],
-    per_class_volumes: List[PerClassRow],
+    per_class_volumes: list[PerClassRow],
     viewer_url_for_qr: str,
 ) -> bytes:
     """Return PDF bytes (one A4 page). ``ild_burden_fraction`` is 0..1; displayed as percent."""

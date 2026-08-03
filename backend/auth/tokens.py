@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi.security import HTTPAuthorizationCredentials
 from jose import JWTError, jwt
+from models.models import ROLE_RADIOLOGIST
 from pydantic import BaseModel
 
-from auth.config import ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
-from models.models import ROLE_RADIOLOGIST
+from auth.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 
 # ---------------------------------------------------------------------------
 # Access tokens (JWT)
@@ -20,7 +20,7 @@ from models.models import ROLE_RADIOLOGIST
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 

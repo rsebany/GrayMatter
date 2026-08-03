@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
-
 from auth import TokenPayload, get_current_user, get_owned_study_or_404
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from models.db import get_session
 from schemas import ExpertMaskCompareResponse, UploadStudyResponse
 from services.studies.analysis_state import MASK_STORAGE
@@ -45,13 +44,13 @@ async def _close_upload_parts(
     if file is not None:
         try:
             await file.close()
-        except Exception:
+        except Exception:  # noqa: BLE001
             _log.debug("%s file.close failed", log_label, exc_info=True)
     if files:
         for part in files:
             try:
                 await part.close()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 _log.debug("%s part.close failed", log_label, exc_info=True)
 
 
@@ -83,15 +82,14 @@ def _build_study_description(
 )
 async def compare_expert_mask_to_prediction(
     study_id: Annotated[str, Form(description="Existing study id, e.g. ST-abc12345")],
-    file: UploadFile | None = File(
-        default=None,
-        description="ZIP of expert mask DICOMs (omit if sending `files`)",
-    ),
-    files: list[UploadFile] | None = File(
-        default=None,
-        description="Multiple expert mask .dcm/.dicom files",
-    ),
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
+    file: Annotated[
+        UploadFile | None, File(description="ZIP of expert mask DICOMs (omit if sending `files`)")
+    ] = None,
+    files: Annotated[
+        list[UploadFile] | None,
+        File(description="Multiple expert mask .dcm/.dicom files"),
+    ] = None,
 ) -> ExpertMaskCompareResponse:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -120,14 +118,15 @@ async def compare_expert_mask_to_prediction(
     ),
 )
 async def upload_study(
-    file: UploadFile | None = File(
-        default=None,
-        description="DICOM .zip or hippocampus MRI NIfTI (.nii / .nii.gz)",
-    ),
-    files: list[UploadFile] | None = File(
-        default=None,
-        description="DICOM folder (.dcm) or optional single NIfTI file",
-    ),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
+    file: Annotated[
+        UploadFile | None,
+        File(description="DICOM .zip or hippocampus MRI NIfTI (.nii / .nii.gz)"),
+    ] = None,
+    files: Annotated[
+        list[UploadFile] | None,
+        File(description="DICOM folder (.dcm) or optional single NIfTI file"),
+    ] = None,
     patient_id: Annotated[str | None, Form()] = None,
     patient_name: Annotated[str | None, Form()] = None,
     date_of_birth: Annotated[str | None, Form()] = None,
@@ -135,7 +134,6 @@ async def upload_study(
     clinical_notes: Annotated[str | None, Form()] = None,
     modality: Annotated[str | None, Form()] = None,
     architecture: Annotated[str | None, Form()] = None,
-    current_user: TokenPayload = Depends(get_current_user),
 ) -> UploadStudyResponse:
     patient = _legacy_patient_json(
         patient_id=patient_id,

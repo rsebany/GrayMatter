@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, List, Literal, Tuple
+from typing import Any, Literal
 
 import numpy as np
 import pydicom
@@ -28,7 +28,7 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 
-def list_dicom_paths(root: Path, *, include_dicom_ext: bool = False) -> List[Path]:
+def list_dicom_paths(root: Path, *, include_dicom_ext: bool = False) -> list[Path]:
     """
     Collect DICOM paths under ``root``.
 
@@ -36,7 +36,7 @@ def list_dicom_paths(root: Path, *, include_dicom_ext: bool = False) -> List[Pat
     files, so concatenating both globs would duplicate every slice. De-duplicate by
     resolved path before returning.
     """
-    candidates: List[Path] = []
+    candidates: list[Path] = []
     candidates.extend(root.rglob("*.dcm"))
     candidates.extend(root.rglob("*.DCM"))
     if include_dicom_ext:
@@ -44,7 +44,7 @@ def list_dicom_paths(root: Path, *, include_dicom_ext: bool = False) -> List[Pat
         candidates.extend(root.rglob("*.DICOM"))
 
     seen: set[str] = set()
-    unique: List[Path] = []
+    unique: list[Path] = []
     for p in candidates:
         try:
             key = str(p.resolve())
@@ -58,7 +58,7 @@ def list_dicom_paths(root: Path, *, include_dicom_ext: bool = False) -> List[Pat
 
 def read_sorted_dicom_slices(
     root: Path, *, include_dicom_ext: bool = False
-) -> List[Any]:
+) -> list[Any]:
     """Load all DICOM datasets under ``root``, sorted by ImagePositionPatient Z (inferior-superior)."""
     files = list_dicom_paths(root, include_dicom_ext=include_dicom_ext)
     if not files:
@@ -75,9 +75,9 @@ def read_sorted_dicom_slices(
 # ---------------------------------------------------------------------------
 
 
-def stack_pixel_volume_zyx_simple(slices: List[Any]) -> np.ndarray:
+def stack_pixel_volume_zyx_simple(slices: list[Any]) -> np.ndarray:
     """One 2D frame per file (typical CT); stack as [Z, Y, X] float32."""
-    volume_slices: List[np.ndarray] = []
+    volume_slices: list[np.ndarray] = []
     for s in slices:
         pixel_arr = s.pixel_array
         if len(pixel_arr.shape) == 3:
@@ -87,12 +87,12 @@ def stack_pixel_volume_zyx_simple(slices: List[Any]) -> np.ndarray:
     return np.stack(volume_slices).astype(np.float32)
 
 
-def stack_pixel_volume_zyx_viewer(slices: List[Any]) -> np.ndarray:
+def stack_pixel_volume_zyx_viewer(slices: list[Any]) -> np.ndarray:
     """
     Same Z,Y,X order as slice overlay; if a file is multi-frame, use the first frame only
     (matches legacy viewer behavior).
     """
-    volume_slices: List[np.ndarray] = []
+    volume_slices: list[np.ndarray] = []
     for s in slices:
         pixel_arr = s.pixel_array
         if len(pixel_arr.shape) == 3:
@@ -115,10 +115,10 @@ def apply_hu_rescale(volume: np.ndarray, first_slice: Any) -> np.ndarray:
 
 
 def spacing_zyx_mm(
-    slices: List[Any],
+    slices: list[Any],
     *,
     mode: Literal["pipeline", "sync", "viewer"] = "sync",
-) -> Tuple[float, float, float]:
+) -> tuple[float, float, float]:
     """
     Voxel spacing (z, y, x) in mm for volume index order [Z, Y, X].
 
@@ -150,7 +150,7 @@ def spacing_zyx_mm(
                 float(slices[1].ImagePositionPatient[2])
                 - float(slices[0].ImagePositionPatient[2])
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             z_spacing = 0.0
     if z_spacing <= 0.0:
         z_spacing = float(getattr(first, "SliceThickness", 1.0))
@@ -177,8 +177,8 @@ def spacing_zyx_mm(
 
 
 def hu_volume_zyx_and_spacing_sync(
-    slices: List[Any],
-) -> Tuple[np.ndarray, Tuple[float, float, float]]:
+    slices: list[Any],
+) -> tuple[np.ndarray, tuple[float, float, float]]:
     """Sorted slices → HU volume + (z,y,x) spacing for segmentation sync validation."""
     if not slices:
         raise ValueError("No DICOM slices")

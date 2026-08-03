@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable
 
 from common.bootstrap import ensure_backend_api_on_path
 

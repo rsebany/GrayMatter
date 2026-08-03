@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-
-from fastapi import APIRouter, Depends
-from sqlalchemy import func
-from sqlalchemy.orm import Query, Session
+from typing import Annotated
 
 from auth import TokenPayload, get_current_user, studies_query
+from fastapi import APIRouter, Depends
 from models.db import get_session
 from models.models import SegmentationResultORM, StudyORM
+from sqlalchemy import func
+from sqlalchemy.orm import Query, Session
 
 # ---------------------------------------------------------------------------
 # Router
@@ -135,7 +135,7 @@ def _build_dashboard_metrics(
     name="analytics_dashboard_metrics",
 )
 async def dashboard_metrics(
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> dict[str, float | int]:
     """Study counts, mean dice, pending queue, completed today, turnaround hint."""
     with get_session() as session:

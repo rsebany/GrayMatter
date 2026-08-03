@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import torch
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 
 def load_torch_checkpoint(path: PathLike, *, map_location: Any = None) -> Any:

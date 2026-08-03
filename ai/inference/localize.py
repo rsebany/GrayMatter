@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal, Sequence, Tuple
+from typing import Literal
 
 import numpy as np
 from scipy import ndimage
@@ -16,7 +17,7 @@ class RoiCrop:
     """A hippocampus-focused sub-volume extracted from a native scan."""
 
     array: np.ndarray
-    offset_zyx: Tuple[int, int, int]
+    offset_zyx: tuple[int, int, int]
     mode: VolumeMode
 
 
@@ -66,13 +67,13 @@ def brain_mask_from_volume(volume: np.ndarray) -> np.ndarray:
 def _roi_size_voxels(
     roi_size: Sequence[int],
     spacing: Sequence[float],
-) -> Tuple[int, int, int]:
+) -> tuple[int, int, int]:
     """Convert physical ROI size to voxel counts using native spacing."""
     rz, ry, rx = (max(1, int(r)) for r in roi_size[:3])
     sz, sy, sx = (max(float(s), 1e-6) for s in spacing[:3])
-    dz = max(1, int(round(rz)))
-    dy = max(1, int(round(ry * (sy / sz)))) if sz > 0 else ry
-    dx = max(1, int(round(rx * (sx / sz)))) if sz > 0 else rx
+    dz = max(1, round(rz))
+    dy = max(1, round(ry * (sy / sz))) if sz > 0 else ry
+    dx = max(1, round(rx * (sx / sz))) if sz > 0 else rx
     return (dz, dy, dx)
 
 

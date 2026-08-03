@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Literal
+from typing import Annotated, Literal
 
 import numpy as np
+from auth import (
+    TokenPayload,
+    get_current_user_from_bearer_or_query,
+    get_owned_study_or_404,
+)
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from models.db import get_session
 from PIL import Image, ImageDraw
 from scipy.ndimage import zoom
-
-from auth import TokenPayload, get_current_user_from_bearer_or_query, get_owned_study_or_404
-from models.db import get_session
 from services.studies.analysis_state import MASK_STORAGE
 
 from .common import (
@@ -67,7 +70,7 @@ def _axial_mask_slice_resized_to_ct(
     w: int,
 ) -> np.ndarray:
     md, mh, mw = mask.shape
-    mask_z = z_index if md == d else int(round((z_index / max(d - 1, 1)) * max(md - 1, 0)))
+    mask_z = z_index if md == d else round((z_index / max(d - 1, 1)) * max(md - 1, 0))
     mask_slice = mask[mask_z, :, :].astype(np.float32, copy=False)
     if (mh, mw) != (h, w):
         mask_slice = zoom(mask_slice, (h / mh, w / mw), order=0)
@@ -125,13 +128,13 @@ def _validate_slice_index(
 async def get_study_slice_overlay(
     study_id: str,
     z_index: int,
+    current_user: Annotated[TokenPayload, Depends(get_current_user_from_bearer_or_query)],
     window_center: int = -600,
     window_width: int = 1500,
     orientation: str = "axial",
     include_overlay: bool = True,
     denoise: bool = False,
     overlay_opacity: float = 0.6,
-    current_user: TokenPayload = Depends(get_current_user_from_bearer_or_query),
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -199,19 +202,19 @@ async def get_study_slice_overlay(
 
     if orient == "axial":
         ct_slice_3d = vol[z_index, :, :]
-        mask_z = z_index if md == d else int(round((z_index / max(d - 1, 1)) * max(md - 1, 0)))
+        mask_z = z_index if md == d else round((z_index / max(d - 1, 1)) * max(md - 1, 0))
         mask_slice = mask[mask_z, :, :]
         slice_h, slice_w = h, w
         mask_slice_h, mask_slice_w = mh, mw
     elif orient == "coronal":
         ct_slice_3d = vol[:, z_index, :]
-        mask_y = z_index if mh == h else int(round((z_index / max(h - 1, 1)) * max(mh - 1, 0)))
+        mask_y = z_index if mh == h else round((z_index / max(h - 1, 1)) * max(mh - 1, 0))
         mask_slice = mask[:, mask_y, :]
         slice_h, slice_w = d, w
         mask_slice_h, mask_slice_w = md, mw
     else:
         ct_slice_3d = vol[:, :, z_index]
-        mask_x = z_index if mw == w else int(round((z_index / max(w - 1, 1)) * max(mw - 1, 0)))
+        mask_x = z_index if mw == w else round((z_index / max(w - 1, 1)) * max(mw - 1, 0))
         mask_slice = mask[:, :, mask_x]
         slice_h, slice_w = d, h
         mask_slice_h, mask_slice_w = md, mh
@@ -254,11 +257,11 @@ async def get_study_slice_overlay(
 async def get_study_expert_compare_slice_dual(
     study_id: str,
     z_index: int,
+    current_user: Annotated[TokenPayload, Depends(get_current_user_from_bearer_or_query)],
     window_center: int = -600,
     window_width: int = 1500,
     denoise: bool = False,
     overlay_opacity: float = 0.6,
-    current_user: TokenPayload = Depends(get_current_user_from_bearer_or_query),
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)

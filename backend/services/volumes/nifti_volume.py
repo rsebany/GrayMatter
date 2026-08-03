@@ -12,7 +12,7 @@ from services.ai.mri_pipeline import NiftiInputError
 
 def is_nifti_path(path: Path) -> bool:
     lower = path.name.lower()
-    return lower.endswith(".nii.gz") or lower.endswith(".nii")
+    return lower.endswith((".nii.gz", ".nii"))
 
 
 def load_nifti_preview_volume(

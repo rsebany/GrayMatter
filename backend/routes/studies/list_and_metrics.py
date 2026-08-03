@@ -5,16 +5,16 @@ from __future__ import annotations
 import random
 import shutil
 from pathlib import Path
+from typing import Annotated
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException, status
-
 from auth import (
     TokenPayload,
     get_current_user,
     get_owned_study_or_404,
     studies_query,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.db import get_session
 from models.models import PatientORM, SegmentationResultORM, StudyORM
 from routes.patients.common import _resolve_patient_name
@@ -25,7 +25,10 @@ from services.ai.architecture_registry import (
     resolve_architecture,
 )
 from services.ai.inference import process_nifti_study
-from services.notifications.service import notify_ai_analysis_complete, notify_ai_analysis_failed
+from services.notifications.service import (
+    notify_ai_analysis_complete,
+    notify_ai_analysis_failed,
+)
 from services.studies.analysis_state import MASK_STORAGE, _analysis_cache
 
 from .common import (
@@ -293,7 +296,7 @@ def _cleanup_study_artifacts(
     name="studies_list",
 )
 async def list_studies(
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> list[StudyListItem]:
     with get_session() as session:
         rows = (
@@ -313,7 +316,7 @@ async def list_studies(
     name="studies_architectures",
 )
 async def list_study_architectures(
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> list[ArchitectureOption]:
     _ = current_user
     return [
@@ -337,7 +340,7 @@ async def list_study_architectures(
 )
 async def get_study_metrics(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> StudyMetrics:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -364,8 +367,8 @@ async def get_study_metrics(
 )
 async def run_study_ai_analysis(
     study_id: str,
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
     architecture: str | None = DEFAULT_ARCHITECTURE_ID,
-    current_user: TokenPayload = Depends(get_current_user),
 ) -> StudyMetrics:
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -400,7 +403,7 @@ async def run_study_ai_analysis(
 )
 async def delete_study(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ) -> None:
     volume_path: Path | None = None
     mesh_url: str | None = None

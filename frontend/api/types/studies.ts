@@ -1,6 +1,7 @@
 /**
  * Study types — list items, segmentation, upload, expert compare, DICOM, sync events.
  */
+import type { Patient } from "./patients";
 
 // ---------------------------------------------------------------------------
 // Shared segmentation shapes
@@ -123,7 +124,7 @@ export interface ArchitectureOption {
 
 export interface UploadStudyResponse {
   study_id: string;
-  patient: any;
+  patient: Patient;
 }
 
 /** Payload for `POST /studies/upload` `patient` form field (JSON). */

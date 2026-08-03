@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from common.api_client import ApiClient
 from common.segmentation_sync import HIPPO_LABELS
 

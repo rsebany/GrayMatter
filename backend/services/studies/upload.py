@@ -11,10 +11,6 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import numpy as np
-from fastapi import Depends, File, Form, HTTPException, UploadFile
-from pydantic import ValidationError
-from sqlalchemy.exc import IntegrityError
-
 from auth import (
     TokenPayload,
     assert_patient_access,
@@ -22,10 +18,13 @@ from auth import (
     get_owned_patient_or_404,
     user_id_from_token,
 )
+from fastapi import Depends, File, Form, HTTPException, UploadFile
 from models.db import get_session
 from models.models import PatientORM, SegmentationResultORM, StudyORM, XRViewORM
+from pydantic import ValidationError
 from schemas import Patient, SegmentationResult, Study, UploadStudyResponse, XRView
-from services.patients.ids import generate_patient_external_id
+from sqlalchemy.exc import IntegrityError
+
 from services.ai.architecture_registry import resolve_architecture
 from services.ai.inference import (
     DicomInputError,
@@ -34,15 +33,21 @@ from services.ai.inference import (
     process_nifti_study,
 )
 from services.dicom.series_read import read_sorted_dicom_slices
+from services.notifications.service import notify_ai_analysis_complete
+from services.patients.ids import generate_patient_external_id
 from services.studies.dicom_upload_helpers import (
     classify_imaging_upload,
     materialize_dicom_upload_to_dir,
     persist_dicom_series,
 )
-from services.studies.nifti_upload_helpers import normalize_nifti_upload, persist_nifti_upload
-from services.notifications.service import notify_ai_analysis_complete
+from services.studies.nifti_upload_helpers import (
+    normalize_nifti_upload,
+    persist_nifti_upload,
+)
 
 __all__ = ["upload_study_impl"]
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Mask persistence & metric sanitization
@@ -159,7 +164,7 @@ def _registry_patient_display_name(external_id: str | None) -> str | None:
             candidate = (row.name or "").strip()
             if candidate and not _is_placeholder_patient_name(candidate):
                 return candidate
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
     return None
 
@@ -167,7 +172,7 @@ def _registry_patient_display_name(external_id: str | None) -> str | None:
 def _extract_patient_metadata_from_dicom(temp_dir: Path) -> dict[str, str]:
     try:
         slices = read_sorted_dicom_slices(temp_dir, include_dicom_ext=True)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return {}
     if not slices:
         return {}
@@ -247,7 +252,7 @@ async def upload_study_impl(
     ] = None,
     study_description: Annotated[str | None, Form()] = None,
     architecture: Annotated[str | None, Form()] = None,
-    current_user: TokenPayload = Depends(get_current_user_optional),
+    current_user: Annotated[TokenPayload, Depends(get_current_user_optional)],
 ) -> UploadStudyResponse:
     """Persist an MRI study + hippocampus segmentation with a selectable architecture."""
     if not current_user:
@@ -291,7 +296,7 @@ async def upload_study_impl(
                     architecture_id=arch.id,
                 )
             except (NiftiInputError, DicomInputError) as e:
-                logging.exception(
+                logger.exception(
                     "DICOM validation error in %s/upload [request_id=%s]",
                     log_prefix,
                     request_id,
@@ -300,7 +305,7 @@ async def upload_study_impl(
             except FileNotFoundError as e:
                 raise HTTPException(status_code=503, detail=str(e)) from e
             except Exception:
-                logging.exception(
+                logger.exception(
                     "Unhandled DICOM processing error in %s/upload [request_id=%s]",
                     log_prefix,
                     request_id,
@@ -332,7 +337,7 @@ async def upload_study_impl(
                     architecture_id=arch.id,
                 )
             except NiftiInputError as e:
-                logging.exception(
+                logger.exception(
                     "NIfTI validation error in %s/upload [request_id=%s]",
                     log_prefix,
                     request_id,
@@ -341,7 +346,7 @@ async def upload_study_impl(
             except FileNotFoundError as e:
                 raise HTTPException(status_code=503, detail=str(e)) from e
             except Exception:
-                logging.exception(
+                logger.exception(
                     "Unhandled NIfTI processing error in %s/upload [request_id=%s]",
                     log_prefix,
                     request_id,
@@ -360,7 +365,7 @@ async def upload_study_impl(
             try:
                 shutil.copy2(nifti_path, stored_nifti)
             except OSError as exc:
-                logging.exception("copy failed in %s/upload [request_id=%s]", log_prefix, request_id)
+                logger.exception("copy failed in %s/upload [request_id=%s]", log_prefix, request_id)
                 raise HTTPException(
                     status_code=500,
                     detail=f"Could not persist NIfTI to storage: {exc}",
@@ -600,7 +605,7 @@ async def upload_study_impl(
 
             return UploadStudyResponse(study_id=study_ext_id, patient=patient_model)
         except IntegrityError as exc:
-            logging.exception(
+            logger.exception(
                 "Study persist conflict in %s/upload [request_id=%s]",
                 log_prefix,
                 request_id,
@@ -613,7 +618,7 @@ async def upload_study_impl(
                 ),
             ) from exc
         except ValidationError:
-            logging.exception(
+            logger.exception(
                 "Response validation failed in %s/upload [request_id=%s]",
                 log_prefix,
                 request_id,
@@ -630,7 +635,7 @@ async def upload_study_impl(
             if temp_dir.exists():
                 shutil.rmtree(temp_dir, ignore_errors=True)
         except OSError:
-            logging.warning(
+            logger.warning(
                 "upload temp dir cleanup failed [request_id=%s] path=%s",
                 request_id,
                 temp_dir,

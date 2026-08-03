@@ -4,19 +4,18 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 import numpy as np
 import trimesh
 
 from services.ai.constants import CLASS_LABELS
 
-MESH_NODE_NAMES: Dict[str, str] = {
+MESH_NODE_NAMES: dict[str, str] = {
     "left": "left",
     "right": "right",
     "brain_shell": "brain_shell",
 }
-_MESH_PALETTE: Dict[str, np.ndarray] = {
+_MESH_PALETTE: dict[str, np.ndarray] = {
     "left": np.array([16, 185, 129, 255], dtype=np.uint8),
     "right": np.array([99, 102, 241, 255], dtype=np.uint8),
     "brain_shell": np.array([148, 163, 184, 255], dtype=np.uint8),
@@ -42,7 +41,7 @@ def _build_submesh(
     binary_mask: np.ndarray,
     spacing_arr: np.ndarray,
     color: np.ndarray,
-) -> Optional[trimesh.Trimesh]:
+) -> trimesh.Trimesh | None:
     from skimage.measure import marching_cubes
 
     vol = (np.asarray(binary_mask) > 0).astype(np.float32)
@@ -152,7 +151,7 @@ def _build_scene(
 def generate_mesh_exports(
     mask: np.ndarray,
     output_dir: Path,
-    spacing: Tuple[float, float, float],
+    spacing: tuple[float, float, float],
     volume: np.ndarray | None = None,
     *,
     output_basename: str | None = None,
@@ -193,7 +192,7 @@ def generate_mesh_exports(
 def generate_mesh_glb(
     mask: np.ndarray,
     output_dir: Path,
-    spacing: Tuple[float, float, float],
+    spacing: tuple[float, float, float],
     volume_hu: np.ndarray | None = None,
     lung_mask: np.ndarray | None = None,
     *,

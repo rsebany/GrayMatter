@@ -6,16 +6,17 @@ import os
 import tempfile
 import zipfile
 from io import BytesIO
+from typing import Annotated
 from urllib.parse import quote_plus
 
+from auth import TokenPayload, get_current_user, get_owned_study_or_404
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse, StreamingResponse
-
-from auth import TokenPayload, get_current_user, get_owned_study_or_404
 from models.db import get_session
 from routes.patients.common import _resolve_patient_name
 from services.dicom.series_read import list_dicom_paths
 from services.studies.pdf import build_ild_study_report_pdf
+
 from .common import (
     DICOM_STORAGE,
     _ensure_study_dicom_dir,
@@ -79,7 +80,7 @@ def _viewer_url(study_id: str, patient_external_id: str | None) -> str:
 )
 async def get_study_dicom_zip(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -113,7 +114,7 @@ async def get_study_dicom_zip(
 )
 async def get_study_nifti(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ):
     with get_session() as session:
         get_owned_study_or_404(session, study_id, current_user)
@@ -141,7 +142,7 @@ async def get_study_nifti(
 )
 async def get_study_report_pdf(
     study_id: str,
-    current_user: TokenPayload = Depends(get_current_user),
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
 ):
     with get_session() as session:
         study = get_owned_study_or_404(session, study_id, current_user)
