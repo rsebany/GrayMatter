@@ -14,7 +14,13 @@ BACKEND_AI_DIR = Path(
         str(MONOREPO_ROOT / "GrayMatter-research" / "backend-ai"),
     )
 )
-DEFAULT_WEIGHTS_PATH = BACKEND_API_DIR / "weights" / "best_metric_model.pth"
+
+DEFAULT_WEIGHTS_PATH = Path(
+    os.environ.get(
+        "GRAYMATTER_CHECKPOINT",
+        str(PLATFORM_ROOT / "ai" / "checkpoints" / "model.pt"),
+    )
+)
 
 # Legacy alias for scripts that expect PROJECT_ROOT = platform root
 PROJECT_ROOT = PLATFORM_ROOT

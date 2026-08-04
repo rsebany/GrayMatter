@@ -8,10 +8,10 @@ Pins and commands for reproducing training, OOF evaluation, and the Docker platf
 | Python | 3.11+ |
 | MONAI | `1.4.0` |
 | PyTorch | `>=2.5.0` |
-| Config | `ai/configs/hybrid_attention_v1.json` (`skip_mode: "full"`) |
+| Config | `ai/configs/hybrid_attention_v1.json` (`skip_mode: "coord_only"`) |
 | Checkpoint | `ai/checkpoints/model.pt` (fold 4) |
-| Architecture id | `lightweight_attunet` (registry key for production Full CISA) |
-| Release | [`v1.0.0-lightweight-attunet`](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-lightweight-attunet) (Apache-2.0) |
+| Architecture id | `lightweight_attunet` (registry key for production Coordinate Attention) |
+| Release | [`v1.0.0-coord-attention`](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) (Apache-2.0) — pending: upload the coord-attention checkpoint there (the old `v1.0.0-lightweight-attunet` asset is Full CISA and does **not** match the current default) |
 | Dataset | MSD Task04 Hippocampus via official MONAI Decathlon download (canonical); Kaggle optional mirror only |
 | Matched variants | `plain_unet` \| `coord_attention` \| `full_cisa` |
 
@@ -27,7 +27,7 @@ curl http://localhost/api/health
 
 ## Train
 
-Three matched variants (shared preprocessing/recipe; deploy default is Full CISA only):
+Three matched variants (shared preprocessing/recipe; deploy default is Coordinate Attention only):
 
 ```powershell
 python ai/training/train.py --variant plain_unet --folds 1,2,3,4,5
@@ -45,7 +45,7 @@ python -m evaluation.oof_eval `
   --output-dir <oof_out>
 ```
 
-Full CISA is the production default and leads selection-time CV DSC (`0.8616 ± 0.0063`).
+Coordinate Attention is the production default: it matches Full CISA on selection-time CV DSC (`0.8605` vs. `0.8616`) with zero CV–OOF gap.
 Pooled OOF DSC: coordinate-attention-only `0.8605`, plain U-Net `0.8552`, Full CISA `0.8457`.
 
 ## Dataset

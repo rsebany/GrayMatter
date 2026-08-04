@@ -14,7 +14,7 @@ _LIGHTWEIGHT_CONFIG = BACKEND_AI_ROOT / "configs" / "hybrid_attention_v1.json"
 _CV_METRICS = BACKEND_AI_ROOT / "graymatter_train_results" / "cv_metrics.csv"
 
 _ARCHITECTURE_LABELS: dict[str, str] = {
-    "lightweight_attunet": "Lightweight Hybrid Attention U-Net (Full CISA)",
+    "lightweight_attunet": "Lightweight Hybrid Attention U-Net (Coordinate Attention)",
     "residual_unet": "Residual U-Net",
     "segresnet": "SegResNet",
     "unetr": "UNETR",
@@ -101,7 +101,7 @@ def resolve_architecture(architecture_id: str | None) -> ArchitectureSpec:
                 f"Production checkpoint not found at {WEIGHTS_PATH}. "
                 "Download the release asset and place it as ai/checkpoints/model.pt "
                 "(see README.md / docs/INSTALL.md; "
-                "https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-lightweight-attunet)."
+                "https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention)."
             )
         config = _load_lightweight_config()
         return ArchitectureSpec(

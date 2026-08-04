@@ -1,6 +1,6 @@
 # GRAYMATTER
 
-Open platform for hippocampal subregion segmentation. Production default: **Full CISA** (`skip_mode: "full"`).
+Open platform for hippocampal subregion segmentation. Production default: **Coordinate Attention** (`skip_mode: "coord_only"`).
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
@@ -15,7 +15,7 @@ Weights are **not** in git. Download the production checkpoint, then start Docke
 Copy-Item .env.example .env
 
 # 2) Weights → ai/checkpoints/model.pt
-#    From https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-lightweight-attunet
+#    From https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention
 New-Item -ItemType Directory -Force -Path ai/checkpoints | Out-Null
 # Download the release .pt/.pth asset, then:
 #   Move-Item <downloaded-file> ai/checkpoints/model.pt
@@ -67,6 +67,6 @@ Full third-party notices: [NOTICE](NOTICE).
 
 ## License
 
-Software and the production checkpoint in this repository are **Apache License 2.0** — see [LICENSE](LICENSE) and the [v1.0.0-lightweight-attunet](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-lightweight-attunet) release.
+Software and the production checkpoint in this repository are **Apache License 2.0** — see [LICENSE](LICENSE) and the [v1.0.0-coord-attention](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) release.
 
 **Carve-out:** `frontend/public/xr/backgrounds/hospital/` is **CC-BY-NC-4.0** (not Apache). Credit required; no commercial use of that asset. See [NOTICE](NOTICE) and [license.txt](frontend/public/xr/backgrounds/hospital/license.txt).

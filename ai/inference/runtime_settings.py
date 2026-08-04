@@ -45,7 +45,7 @@ def get_settings() -> RuntimeSettings:
     return RuntimeSettings(
         experiment_config_path=config_path,
         model_checkpoint_path=ckpt_path,
-        model_version=os.environ.get("GRAYMATTER_MODEL_VERSION", "v1.0.0-lightweight-attunet"),
+        model_version=os.environ.get("GRAYMATTER_MODEL_VERSION", "v1.0.0-coord-attention"),
         s3_endpoint_url=os.environ.get("S3_ENDPOINT_URL", "http://localhost:9000"),
         s3_access_key_id=os.environ.get("S3_ACCESS_KEY_ID", ""),
         s3_secret_access_key=os.environ.get("S3_SECRET_ACCESS_KEY", ""),

@@ -10,7 +10,7 @@
 Copy-Item .env.example .env
 
 # Download production weights (not in git):
-# https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-lightweight-attunet
+# https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention
 # Save/rename the asset as ai/checkpoints/model.pt
 
 New-Item -ItemType Directory -Force -Path ai/checkpoints | Out-Null

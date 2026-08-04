@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sanity-check UNet3D checkpoint loading and a single forward pass."""
+"""Sanity-check the production Hybrid Attention U-Net checkpoint and a forward pass."""
 from __future__ import annotations
 
 import sys
@@ -11,67 +11,75 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-from common.bootstrap import ensure_backend_ai_on_path
-from common.paths import BACKEND_AI_DIR, DEFAULT_WEIGHTS_PATH
+from common.paths import BACKEND_API_DIR, PLATFORM_ROOT
+
+_AI_ROOT = PLATFORM_ROOT / "ai"
 
 
 def main() -> int:
     """
-    Quick sanity-check for the production UNet3DResidual checkpoint.
+    Sanity-check for the production ``LightweightHybridAttentionUNet3D`` checkpoint.
 
-    - Verifies weights file exists.
-    - Loads via ``train_pipeline.load_trained_model`` (same as inference).
-    - Reports missing / unexpected keys (with production key remap).
-    - Runs a random 2-channel forward pass.
+    - Verifies weights file exists (env ``GRAYMATTER_CHECKPOINT`` or
+      ``ai/checkpoints/model.pt``).
+    - Builds the model from ``ai/configs/hybrid_attention_v1.json`` via
+      ``models.hybrid_attention_unet.build_model`` (same as inference).
+    - Reports missing / unexpected keys.
+    - Runs a random 1-channel forward pass.
     """
-    if not BACKEND_AI_DIR.is_dir():
-        print(f"[ERROR] backend-ai directory not found at {BACKEND_AI_DIR}")
+    if str(BACKEND_API_DIR) not in sys.path:
+        sys.path.insert(0, str(BACKEND_API_DIR))
+    from config import WEIGHTS_PATH
+
+    if not WEIGHTS_PATH.is_file():
+        print(f"[ERROR] Weights file not found at {WEIGHTS_PATH}")
         return 1
 
-    if not DEFAULT_WEIGHTS_PATH.is_file():
-        print(f"[ERROR] Weights file not found at {DEFAULT_WEIGHTS_PATH}")
-        return 1
-
-    ensure_backend_ai_on_path()
+    if str(_AI_ROOT) not in sys.path:
+        sys.path.insert(0, str(_AI_ROOT))
     try:
-        from config import IN_CHANNELS, PATCH_SIZE  # type: ignore
-        from models.unet3d import UNet3DResidual  # type: ignore
-        from train_pipeline import (  # type: ignore
-            _extract_state_dict,
-            _load_checkpoint_raw,
-            _strip_deep_supervision_keys,
-            load_trained_model,
-        )
+        from configs.experiment_config import load_experiment_config
+        from models.hybrid_attention_unet import build_model
     except Exception as exc:  # noqa: BLE001
-        print(f"[ERROR] Failed to import backend-ai modules: {exc}")
+        print(f"[ERROR] Failed to import ai modules from {_AI_ROOT}: {exc}")
         return 1
 
-    print(f"[INFO] Using weights: {DEFAULT_WEIGHTS_PATH}")
-    print(f"[INFO] Model in_channels={IN_CHANNELS}, patch_size={PATCH_SIZE}")
+    config_path = _AI_ROOT / "configs" / "hybrid_attention_v1.json"
+    config = load_experiment_config(config_path)
+    print(f"[INFO] Using weights: {WEIGHTS_PATH}")
+    print(
+        f"[INFO] skip_mode={config.skip_mode}, classes={config.num_classes}, "
+        f"channels={config.model_channels}, roi={config.roi_size}"
+    )
 
     device = torch.device("cpu")
-    raw = _strip_deep_supervision_keys(
-        _extract_state_dict(_load_checkpoint_raw(DEFAULT_WEIGHTS_PATH, device))
+    model = build_model(config).to(device)
+    model.eval()
+
+    checkpoint = torch.load(WEIGHTS_PATH, map_location=device, weights_only=False)
+    state_dict = checkpoint.get(
+        "model_state_dict", checkpoint.get("state_dict", checkpoint)
     )
-    remapped = {
-        k.replace("module.", "").replace("final_conv.", "final."): v for k, v in raw.items()
-    }
-    probe = UNet3DResidual(in_channels=IN_CHANNELS, num_classes=4)
-    load_result = probe.load_state_dict(remapped, strict=False)
+    print(f"[INFO] Checkpoint top-level keys: {list(checkpoint.keys())}")
+    print(f"[INFO] state_dict entries: {len(state_dict)}")
+
+    load_result = model.load_state_dict(state_dict, strict=False)
     print(f"[INFO] Missing keys count: {len(load_result.missing_keys)}")
     for key in load_result.missing_keys:
         print(f"  MISSING: {key}")
     print(f"[INFO] Unexpected keys count: {len(load_result.unexpected_keys)}")
     for key in load_result.unexpected_keys:
         print(f"  UNEXPECTED: {key}")
+    if load_result.missing_keys or load_result.unexpected_keys:
+        print("[ERROR] Checkpoint does not exactly match the model; inference would be wrong.")
+        return 1
 
-    model = load_trained_model(DEFAULT_WEIGHTS_PATH, device)
-    dz, dy, dx = PATCH_SIZE
-    x = torch.randn(1, IN_CHANNELS, dz, dy, dx)
+    dz, dy, dx = config.roi_size
+    x = torch.randn(1, 1, dz, dy, dx)
     with torch.no_grad():
         y = model(x)
 
-    print(f"[INFO] Forward pass OK. Output shape: {tuple(y.shape)}")
+    print(f"[OK] Forward pass OK. Output shape: {tuple(y.shape)}")
     print(f"[INFO] Output stats: min={float(y.min()):.4f}, max={float(y.max()):.4f}")
     return 0
 

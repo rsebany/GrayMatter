@@ -55,8 +55,8 @@ class ExperimentConfig:
     continue_on_fold_error: bool = True
     class_voxel_counts: tuple[int, ...] = (15_469_002, 445_938, 410_816)
     model_channels: tuple[int, ...] = (32, 64, 128, 256)
-    skip_mode: str = "full"  # identity | coord_only | full
-    model_version: str = "v1.0.0-lightweight-attunet"
+    skip_mode: str = "coord_only"  # identity | coord_only | full
+    model_version: str = "v1.0.0-coord-attention"
     production_fold: int = 4
 
     @classmethod
