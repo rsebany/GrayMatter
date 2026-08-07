@@ -35,6 +35,7 @@ export function PatientsPageContent() {
     <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5">
       <div className="flex items-center justify-between gap-4">
         <RegistryOverviewHeading
+          title="Patients Overview"
           totalLabel="registered patients"
           count={patients.length}
           isLoading={isLoading}

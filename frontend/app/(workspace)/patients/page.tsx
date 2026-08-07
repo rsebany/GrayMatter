@@ -12,7 +12,7 @@ export default function PatientsPage() {
   return (
     <WorkspaceShell
       activePage="patients"
-      title="Registry overview"
+      title="Patients Overview"
       breadcrumb="Dashboard / Patients"
       mainClassName="flex min-w-0 flex-1 flex-col p-6"
     >
