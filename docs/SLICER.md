@@ -97,6 +97,7 @@ ref = gm.load_reference_volume(manifest)  # DICOM dir or NIfTI from pull
 seg = gm.load_ai_segmentation(manifest["mask_path"], ref, manifest)
 ```
 
+
 ### Option B — Manual
 
 1. **DICOM module** → Import `dicom/` folder
