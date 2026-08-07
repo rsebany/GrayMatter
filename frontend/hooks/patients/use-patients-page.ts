@@ -1,116 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import type { Patient } from "@/api/domain";
-import { usePatientMutations, usePatients } from "@/hooks/patients";
-
-const EMPTY_FORM: Partial<Patient> = {
-  id: "",
-  name: "",
-  dateOfBirth: undefined,
-  notes: "",
-};
+import { useDeletePatient } from "@/hooks/patients/use-patient-mutations";
+import { usePatients } from "@/hooks/patients/use-patients";
+import { useQuickRegistry } from "@/hooks/patients/use-quick-registry";
 
 export function usePatientsPage() {
-  const [addCaseOpen, setAddCaseOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<Partial<Patient>>(EMPTY_FORM);
-  const [filter, setFilter] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("q") ?? "";
 
   const { data: patients = [], isLoading, error, refetch } = usePatients();
-  const {
-    createPatient,
-    updatePatient,
-    deletePatient,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    createError,
-    updateError,
-    deleteError,
-  } = usePatientMutations();
+  const registry = useQuickRegistry();
+  const deleteMutation = useDeletePatient();
 
-  function resetForm() {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmedName = form.name?.trim();
-    if (!trimmedName) return;
-
-    try {
-      if (editingId) {
-        await updatePatient({
-          id: editingId,
-          payload: {
-            name: trimmedName,
-            dateOfBirth: form.dateOfBirth ?? undefined,
-            notes: form.notes ?? undefined,
-          },
-        });
-      } else {
-        await createPatient({
-          name: trimmedName,
-          dateOfBirth: form.dateOfBirth ?? undefined,
-          notes: form.notes ?? undefined,
-        });
-      }
-      resetForm();
-    } catch (err) {
-      console.error("Patient save failed:", err);
-    }
-  }
-
-  function handleEdit(patient: Patient) {
-    setEditingId(patient.id);
-    setForm({
-      id: patient.id,
-      name: patient.name ?? "",
-      dateOfBirth: patient.dateOfBirth ?? undefined,
-      notes: patient.notes ?? undefined,
-    });
-  }
+  const setFilter = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value.trim()) params.set("q", value);
+      else params.delete("q");
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to remove this patient record?")) return;
     try {
-      await deletePatient(id);
-      if (editingId === id) resetForm();
+      await deleteMutation.mutateAsync(id);
+      if (registry.editingId === id) registry.resetForm();
       await refetch();
     } catch (err) {
       console.error("Delete failed:", err);
     }
   }
 
-  async function handleAddCaseSubmit() {
-    // Patient and study are persisted by upload-study API; refetch via query invalidation.
-  }
-
   return {
-    addCaseOpen,
-    setAddCaseOpen,
-    editingId,
-    form,
-    setForm,
     filter,
     setFilter,
     patients,
     isLoading,
     error,
-    resetForm,
-    handleSubmit,
-    handleEdit,
     handleDelete,
-    handleAddCaseSubmit,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    createError,
-    updateError,
-    deleteError,
+    isDeleting: deleteMutation.isPending,
+    deleteError: deleteMutation.error,
     refetch,
+    ...registry,
   };
 }

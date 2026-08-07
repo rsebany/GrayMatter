@@ -24,9 +24,9 @@ export const KPICard = ({ icon, label, value, href, badge, color, can }: KPICard
     };
   
     return (
-      <div className={`group relative overflow-hidden rounded-xl border border-graymatter-border bg-gradient-to-br p-6 transition-all hover:shadow-lg ${color ? colors[color] : ""}`}>
+      <div className={`group relative h-[148px] overflow-hidden rounded-xl border border-graymatter-border bg-gradient-to-br p-5 transition-all hover:shadow-lg ${color ? colors[color] : ""}`}>
         <div className="flex items-start justify-between">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background/50 group-hover:scale-110 transition-transform">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background/50 transition-transform group-hover:scale-105 [&_svg]:h-5 [&_svg]:w-5">
             {icon}
           </div>
           {href ? (
@@ -35,8 +35,8 @@ export const KPICard = ({ icon, label, value, href, badge, color, can }: KPICard
             badge && <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-bold">{badge}</span>
           )}
         </div>
-        <div className="mt-4">
-          <div className="text-3xl font-bold">{value}</div>
+        <div className="mt-3">
+          <div className="text-2xl font-bold leading-none">{value}</div>
           <div className="text-sm font-medium text-muted-foreground">{label}</div>
         </div>
       </div>

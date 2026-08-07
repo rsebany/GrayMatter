@@ -1,15 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, User, Eye, Edit2, Trash2, Plus } from "lucide-react";
-import { LoadingState } from "@/components/ui/loading";
-import { Button } from "@/components/ui/button";
+import { Edit2, Eye, Search, Trash2, User } from "lucide-react";
+
 import type { Patient } from "@/api/domain";
+import { LoadingState } from "@/components/ui/loading";
 
-const INITIAL_VISIBLE_COUNT = 7;
-
-type Props = {
+type PatientTableProps = {
   patients: Patient[];
   isLoading: boolean;
   error: unknown;
@@ -20,10 +17,18 @@ type Props = {
   onDelete: (id: string) => void;
   isUpdating: boolean;
   isDeleting: boolean;
-  createError: unknown;
-  updateError: unknown;
-  deleteError: unknown;
+  mutationError: unknown;
 };
+
+function errorMessage(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const response = (error as Error & {
+    response?: { data?: { detail?: unknown } };
+  }).response;
+  const detail = response?.data?.detail;
+  if (typeof detail === "string") return detail;
+  return error.message;
+}
 
 export function PatientTable({
   patients,
@@ -36,230 +41,162 @@ export function PatientTable({
   onDelete,
   isUpdating,
   isDeleting,
-  createError,
-  updateError,
-  deleteError,
-}: Props) {
-  const [showAll, setShowAll] = useState(false);
-
-  useEffect(() => {
-    setShowAll(false);
-  }, [filter]);
-
-  const filteredPatients = !filter.trim()
-    ? patients
-    : patients.filter((p) => {
-        const q = filter.toLowerCase();
-        return (
-          p.name?.toLowerCase().includes(q) ||
-          p.id.toLowerCase().includes(q) ||
-          p.notes?.toLowerCase().includes(q)
-        );
-      });
-
-  const visiblePatients = showAll
-    ? filteredPatients
-    : filteredPatients.slice(0, INITIAL_VISIBLE_COUNT);
-  const hiddenCount = Math.max(0, filteredPatients.length - INITIAL_VISIBLE_COUNT);
-
-  const mutationError = createError || updateError || deleteError;
+  mutationError,
+}: PatientTableProps) {
+  const query = filter.trim().toLowerCase();
+  const filteredPatients = query
+    ? patients.filter(
+        (patient) =>
+          patient.name.toLowerCase().includes(query) ||
+          patient.id.toLowerCase().includes(query) ||
+          patient.notes?.toLowerCase().includes(query),
+      )
+    : patients;
 
   return (
-    <>
-      {error && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-500">
-          <p className="mb-1">
-            Clinical API unavailable. Please verify your backend connection.
-          </p>
-          <p className="mb-2 text-xs text-amber-500/80">
-            {error instanceof Error
-              ? error.message
-              : "An unexpected error occurred while loading patients."}
-          </p>
-          <button
-            onClick={onRetry}
-            className="underline hover:text-foreground"
-          >
+    <section className="overflow-hidden rounded-xl border-[0.5px] border-[var(--border)] bg-[var(--surface-2)]">
+      <div className="flex items-center justify-between gap-4 border-b border-[var(--border)] px-3 py-3.5">
+        <h2 className="text-[15px] font-medium text-[var(--text-primary)]">Database records</h2>
+        <div className="relative w-[280px]">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--text-muted)]"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            aria-label="Quick filter patients"
+            placeholder="Quick filter..."
+            value={filter}
+            onChange={(event) => onFilterChange(event.target.value)}
+            className="h-9 w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--registry-primary)] focus:ring-2 focus:ring-[var(--registry-primary-soft)]"
+          />
+        </div>
+      </div>
+
+      {error ? (
+        <div className="m-3 rounded-lg border border-[var(--text-warning)]/30 bg-[var(--registry-warning-soft)] p-3 text-xs text-[var(--text-warning)]">
+          <p>Clinical API unavailable. {errorMessage(error)}</p>
+          <button type="button" onClick={onRetry} className="mt-1 underline">
             Retry
           </button>
         </div>
-      )}
+      ) : null}
 
-      {mutationError && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
-          <p className="mb-1 font-semibold">Patient mutation failed.</p>
-          <p className="text-xs text-red-500/80">
-            {(() => {
-              const err = mutationError;
-              if (err instanceof Error) {
-                const anyErr = err as {
-                  message: string;
-                  response?: { data?: { detail?: unknown } };
-                };
-                const detail = anyErr.response?.data?.detail;
-                if (typeof detail === "string") return detail;
-                if (Array.isArray(detail)) {
-                  return detail
-                    .map((e) =>
-                      e && typeof e === "object"
-                        ? e.msg ?? e.message ?? JSON.stringify(e)
-                        : String(e)
-                    )
-                    .join("; ");
-                }
-                if (detail && typeof detail === "object") {
-                  return JSON.stringify(detail);
-                }
-                return anyErr.message;
-              }
-              return String(err);
-            })()}
-          </p>
+      {mutationError ? (
+        <div className="m-3 rounded-lg border border-[var(--text-danger)]/30 bg-[var(--registry-danger-soft)] p-3 text-xs text-[var(--text-danger)]">
+          Patient update failed. {errorMessage(mutationError)}
         </div>
-      )}
+      ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-graymatter-border bg-graymatter-card shadow-xl">
-        <div className="flex flex-col gap-2 border-b border-graymatter-border bg-graymatter-card-hover px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-          <span className="text-sm font-medium text-muted-foreground">
-            Database Records
-          </span>
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Quick filter..."
-              value={filter}
-              onChange={(e) => onFilterChange(e.target.value)}
-              className="h-10 w-full rounded-lg border border-border bg-background px-8 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500 focus:outline-none sm:w-auto"
-            />
-          </div>
-        </div>
-
+      {isLoading ? (
+        <LoadingState label="Loading patients..." className="py-16" />
+      ) : (
         <div className="overflow-x-auto">
-          {isLoading ? (
-            <LoadingState
-              label="Loading patients..."
-              className="py-16"
-              iconClassName="h-8 w-8 text-sky-500"
-            />
-          ) : (
-            <table className="min-w-[680px] w-full border-collapse text-left">
-              <thead className="bg-graymatter-card-hover text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">
-                    Patient Identity
-                  </th>
-                  <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">
-                    Clinical Notes
-                  </th>
-                  <th className="px-3 py-3 text-right font-semibold sm:px-6 sm:py-4">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-graymatter-border">
-                {visiblePatients.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="group transition-colors hover:bg-graymatter-card-hover"
-                  >
-                    <td className="px-3 py-3 sm:px-6 sm:py-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-foreground">
-                          {p.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {p.dateOfBirth
-                            ? `DOB: ${p.dateOfBirth}`
-                            : "DOB: —"}
-                        </span>
-                        <span className="text-xs font-mono uppercase text-sky-500">
-                          {p.id}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 sm:px-6 sm:py-4">
-                      <p className="max-w-[260px] break-words text-sm text-muted-foreground">
-                        {p.notes || (
-                          <span className="italic opacity-30">
-                            No notes provided
-                          </span>
-                        )}
+          <table className="w-full min-w-[680px] border-collapse text-left">
+            <colgroup>
+              <col className="w-[45%]" />
+              <col />
+              <col className="w-[140px]" />
+            </colgroup>
+            <thead>
+              <tr className="border-b border-[var(--border)]">
+                <th
+                  scope="col"
+                  className="px-3 py-3 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-muted)]"
+                >
+                  Patient identity
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-muted)]"
+                >
+                  Clinical notes
+                </th>
+                <th
+                  scope="col"
+                  className="px-3 py-3 text-right text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--text-muted)]"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPatients.map((patient) => (
+                <tr
+                  key={patient.id}
+                  className="border-b border-[var(--border)] transition-colors last:border-b-0 hover:bg-[var(--surface-1)]"
+                >
+                  <td className="px-3 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-[var(--text-primary)]">
+                        {patient.name}
+                      </span>
+                      <span className="text-[13px] text-[var(--text-secondary)]">
+                        DOB: {patient.dateOfBirth || "Not provided"}
+                      </span>
+                      <Link
+                        href={`/patients/${encodeURIComponent(patient.id)}`}
+                        className="w-fit text-[13px] text-[var(--registry-primary)] hover:underline"
+                      >
+                        {patient.id}
+                      </Link>
+                    </div>
+                  </td>
+                  <td className="px-3 py-4">
+                    {patient.notes ? (
+                      <p className="max-w-[420px] text-[13px] text-[var(--text-primary)]">
+                        {patient.notes}
                       </p>
-                    </td>
-                    <td className="px-3 py-3 text-right sm:px-6 sm:py-4">
-                      <div className="flex flex-wrap justify-end gap-1.5 opacity-90 transition-opacity group-hover:opacity-100 sm:gap-2 sm:opacity-60">
-                        <button
-                          onClick={() => onEdit(p)}
-                          disabled={isUpdating}
-                          className="rounded-lg bg-blue-500/10 p-2.5 text-blue-500 hover:bg-blue-500/20"
-                          title="Edit Metadata"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <Link
-                          href={`/upload-dicom?patientId=${encodeURIComponent(
-                            p.id
-                          )}`}
-                          className="rounded-lg bg-emerald-500/10 p-2.5 text-emerald-500 hover:bg-emerald-500/20"
-                          title="View Studies & Analyze"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                        </Link>
-                        <button
-                          onClick={() => onDelete(p.id)}
-                          disabled={isDeleting}
-                          className="rounded-lg bg-red-500/10 p-2.5 text-red-500 hover:bg-red-500/20"
-                          title="Delete Record"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {!isLoading && filteredPatients.length === 0 && (
-            <div className="flex flex-col items-center gap-2 p-12 text-center text-muted-foreground">
-              <User className="h-8 w-8 opacity-20" />
-              <p>
-                {filter
-                  ? "No patients match your filter."
-                  : "No medical records found in the current view."}
+                    ) : (
+                      <span className="text-[13px] italic text-[var(--text-muted)]">
+                        No notes provided
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-4">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        aria-label="Edit patient"
+                        disabled={isUpdating}
+                        onClick={() => onEdit(patient)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--registry-primary-soft)] text-[var(--registry-primary-strong)] transition-[filter] hover:brightness-[0.93] disabled:opacity-50"
+                      >
+                        <Edit2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                      <Link
+                        href={`/patients/${encodeURIComponent(patient.id)}`}
+                        aria-label="View patient record"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--registry-teal-soft)] text-[var(--registry-teal)] transition-[filter] hover:brightness-[0.93]"
+                      >
+                        <Eye className="h-4 w-4" aria-hidden="true" />
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label="Delete patient"
+                        disabled={isDeleting}
+                        onClick={() => onDelete(patient.id)}
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--registry-danger-soft)] text-[var(--text-danger)] transition-[filter] hover:brightness-[0.93] disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredPatients.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 p-12 text-center text-[var(--text-muted)]">
+              <User className="h-8 w-8 opacity-40" aria-hidden="true" />
+              <p className="text-sm">
+                {filter ? "No patients match your filter." : "No patient records found."}
               </p>
             </div>
-          )}
-          {!isLoading && hiddenCount > 0 && (
-            <div className="border-t border-graymatter-border px-3 py-3 text-center sm:px-6">
-              {showAll ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground"
-                  onClick={() => setShowAll(false)}
-                >
-                  Show fewer patients
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 rounded-lg border-sky-500/30 text-xs font-semibold text-sky-600 hover:bg-sky-500/10"
-                  onClick={() => setShowAll(true)}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  View +
-                </Button>
-              )}
-            </div>
-          )}
+          ) : null}
         </div>
-      </div>
-    </>
+      )}
+    </section>
   );
 }
-

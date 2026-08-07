@@ -14,9 +14,11 @@ export function RegistryOverviewHeading({
 }: Props) {
   return (
     <div className="min-w-0">
-      <h2 className="text-lg font-bold text-foreground sm:text-xl">Registry Overview</h2>
-      <p className="break-words text-sm text-muted-foreground">
-        {isLoading ? "Loading..." : `Total: ${count} ${totalLabel}`}
+      <h1 className="text-[28px] font-medium leading-tight text-[var(--text-primary)]">
+        Registry overview
+      </h1>
+      <p className="mt-1 break-words text-[13px] text-[var(--text-muted)]">
+        {isLoading ? "Loading..." : `Total: ${count} ${totalLabel.toLowerCase()}`}
       </p>
     </div>
   );

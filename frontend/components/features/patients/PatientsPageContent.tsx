@@ -1,18 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { UserPlus } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { PatientQuickEditor } from "@/components/features/patients/PatientQuickEditor";
+import { QuickRegistry } from "@/components/features/patients/QuickRegistry";
 import { PatientTable } from "@/components/features/patients/PatientTable";
-import { AddCaseSheet } from "@/components/features/studies/AddCaseSheet";
 import { RegistryOverviewHeading } from "@/components/layout";
 import { usePatientsPage } from "@/hooks/patients";
 
 export function PatientsPageContent() {
   const {
-    addCaseOpen,
-    setAddCaseOpen,
     editingId,
     form,
     setForm,
@@ -22,10 +19,9 @@ export function PatientsPageContent() {
     isLoading,
     error,
     resetForm,
-    handleSubmit,
-    handleEdit,
+    submit,
+    editPatient,
     handleDelete,
-    handleAddCaseSubmit,
     isCreating,
     isUpdating,
     isDeleting,
@@ -36,58 +32,47 @@ export function PatientsPageContent() {
   } = usePatientsPage();
 
   return (
-    <>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <RegistryOverviewHeading
-            totalLabel="Registered Patients"
-            count={patients.length}
-            isLoading={isLoading}
-          />
-          <Button
-            onClick={() => setAddCaseOpen(true)}
-            className="w-full rounded-xl bg-sky-600 font-semibold text-white hover:bg-sky-500 sm:w-auto"
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Full Medical Intake
-          </Button>
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="space-y-4 lg:col-span-2">
-            <PatientTable
-              patients={patients}
-              isLoading={isLoading}
-              error={error}
-              filter={filter}
-              onFilterChange={setFilter}
-              onRetry={refetch}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isUpdating={isUpdating}
-              isDeleting={isDeleting}
-              createError={createError}
-              updateError={updateError}
-              deleteError={deleteError}
-            />
-          </div>
-
-          <PatientQuickEditor
-            form={form}
-            editingId={editingId}
-            onChange={setForm}
-            onSubmit={handleSubmit}
-            onReset={resetForm}
-            isCreating={isCreating}
-            isUpdating={isUpdating}
-          />
-        </div>
+    <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-5">
+      <div className="flex items-center justify-between gap-4">
+        <RegistryOverviewHeading
+          totalLabel="registered patients"
+          count={patients.length}
+          isLoading={isLoading}
+        />
+        <Link
+          href="/upload-dicom"
+          className="inline-flex h-10 items-center gap-2 rounded-full bg-[var(--registry-primary)] px-5 text-sm font-medium text-white transition-[filter] hover:brightness-95"
+        >
+          <UserPlus className="h-4 w-4" aria-hidden="true" />
+          Full medical intake
+        </Link>
       </div>
-      <AddCaseSheet
-        open={addCaseOpen}
-        onOpenChange={setAddCaseOpen}
-        onSubmit={handleAddCaseSubmit}
-      />
-    </>
+
+      <div className="grid min-w-[980px] grid-cols-[minmax(0,1fr)_300px] items-start gap-5">
+        <PatientTable
+          patients={patients}
+          isLoading={isLoading}
+          error={error}
+          filter={filter}
+          onFilterChange={setFilter}
+          onRetry={refetch}
+          onEdit={editPatient}
+          onDelete={handleDelete}
+          isUpdating={isUpdating}
+          isDeleting={isDeleting}
+          mutationError={createError || updateError || deleteError}
+        />
+
+        <QuickRegistry
+          form={form}
+          editingId={editingId}
+          onChange={setForm}
+          onSubmit={submit}
+          onReset={resetForm}
+          isCreating={isCreating}
+          isUpdating={isUpdating}
+        />
+      </div>
+    </div>
   );
 }

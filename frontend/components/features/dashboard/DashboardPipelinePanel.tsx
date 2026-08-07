@@ -5,6 +5,8 @@
 
 import Link from "next/link";
 import { Upload } from "lucide-react";
+import { Cell, Pie, PieChart, Tooltip as RechartsTooltip } from "recharts";
+import type { TooltipContentProps } from "recharts";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -125,32 +127,96 @@ function PipelineEmptyState({
   );
 }
 
+const PENDING_COLOR = "#f59e0b"; // amber-500
+const PROCESSED_COLOR = "#10b981"; // emerald-500
+const DONUT_SIZE = 64;
+
+function PipelineDonutTooltip({
+  active,
+  payload,
+  total,
+}: Partial<TooltipContentProps<number, string>> & { total: number }) {
+  if (!active || !payload?.length) return null;
+  const entry = payload[0];
+  const value = entry?.value;
+  if (typeof value !== "number") return null;
+  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+
+  return (
+    <div className="rounded-md border border-graymatter-border bg-graymatter-card px-2 py-1 text-[10px] font-medium shadow-sm">
+      {entry?.name}: {value} ({pct}%)
+    </div>
+  );
+}
+
+function PipelineDonut({
+  pendingCount,
+  processedCount,
+}: {
+  pendingCount: number;
+  processedCount: number;
+}) {
+  const total = pendingCount + processedCount;
+
+  if (total === 0) {
+    return (
+      <div
+        className="h-16 w-16 shrink-0 rounded-full border-2 border-dashed border-muted-foreground/30"
+        aria-hidden
+      />
+    );
+  }
+
+  const data = [
+    { name: "Pending", value: pendingCount, color: PENDING_COLOR },
+    { name: "Processed", value: processedCount, color: PROCESSED_COLOR },
+  ];
+
+  return (
+    <PieChart width={DONUT_SIZE} height={DONUT_SIZE} className="shrink-0">
+      <Pie
+        data={data}
+        dataKey="value"
+        nameKey="name"
+        innerRadius={20}
+        outerRadius={30}
+        startAngle={90}
+        endAngle={-270}
+        stroke="none"
+        isAnimationActive={false}
+      >
+        {data.map((entry) => (
+          <Cell key={entry.name} fill={entry.color} />
+        ))}
+      </Pie>
+      <RechartsTooltip
+        cursor={false}
+        wrapperStyle={{ outline: "none" }}
+        content={<PipelineDonutTooltip total={total} />}
+      />
+    </PieChart>
+  );
+}
+
 function PipelineProgressBar({ stats }: { stats: PipelineStats }) {
-  const { pendingCount, processedCount, pendingPct, processedPct } = stats;
+  const { pendingCount, processedCount } = stats;
   const showTurnaround =
     stats.avgTurnaroundHours != null && stats.avgTurnaroundHours > 0;
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0 flex-1">
-        <div className="flex h-3 w-full max-w-md overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full shrink-0 bg-amber-500"
-            style={{ width: `${pendingPct}%` }}
-          />
-          <div
-            className="h-full shrink-0 bg-emerald-500"
-            style={{ width: `${processedPct}%` }}
-          />
-        </div>
-        <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-          <span>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-1 items-center gap-4">
+        <PipelineDonut pendingCount={pendingCount} processedCount={processedCount} />
+        <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden />
             Pending{" "}
             <span className="font-semibold tabular-nums text-foreground">
               {pendingCount}
             </span>
           </span>
-          <span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" aria-hidden />
             Processed{" "}
             <span className="font-semibold tabular-nums text-foreground">
               {processedCount}

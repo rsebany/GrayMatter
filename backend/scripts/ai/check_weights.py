@@ -2,6 +2,7 @@
 """Sanity-check the production Hybrid Attention U-Net checkpoint and a forward pass."""
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -13,7 +14,11 @@ if str(_SCRIPTS_ROOT) not in sys.path:
 
 from common.paths import BACKEND_API_DIR, PLATFORM_ROOT
 
-_AI_ROOT = PLATFORM_ROOT / "ai"
+_AI_ROOT = Path(
+    os.environ.get("GRAYMATTER_AI_ROOT")
+    or os.environ.get("GRAYMATTER_BACKEND_AI_ROOT")
+    or (PLATFORM_ROOT / "ai")
+)
 
 
 def main() -> int:

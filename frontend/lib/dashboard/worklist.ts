@@ -1,7 +1,12 @@
+import type { StudyListItem } from "@/api/domain";
 import { studyViewerQuery as buildStudyViewerQuery } from "@/lib/imaging";
 import { formatSegmentationVolume } from "@/lib/metrics/format-segmentation-volume";
 import type { RecentStudyRow } from "@/lib/dashboard/recent-studies";
 import { formatStudyWhenLabel } from "@/lib/studies/study-display";
+import {
+  filterStudiesByPeriod,
+  type WorklistPeriodDays,
+} from "@/lib/dashboard/study-trend";
 
 export type WorklistFilter = "all" | "active" | "done";
 
@@ -61,6 +66,23 @@ export function applyWorklistFilter(
     return list.filter((s) => s.status.toLowerCase().includes("complete"));
   }
   return list;
+}
+
+export function filterStudiesForWorklist(
+  studies: StudyListItem[],
+  periodDays: WorklistPeriodDays,
+  statusFilter: WorklistFilter,
+): StudyListItem[] {
+  const inPeriod = filterStudiesByPeriod(studies, periodDays);
+  if (statusFilter === "all") return inPeriod;
+
+  return inPeriod.filter((study) => {
+    const status = study.status.toLowerCase();
+    if (statusFilter === "done") {
+      return status.includes("complete");
+    }
+    return status === "pending" || status === "processing";
+  });
 }
 
 export function countNeedingAttention(studies: RecentStudyRow[]): number {

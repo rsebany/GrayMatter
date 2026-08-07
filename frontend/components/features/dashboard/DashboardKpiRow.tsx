@@ -1,18 +1,21 @@
 /**
- * Dashboard KPI cards — patients, studies, pending, completed today.
+ * Dashboard KPI cards — studies, patients, pending, completed today.
  */
 "use client";
 
-import { CheckCircle2, Clock, FileText, Users } from "lucide-react";
+import { CheckCircle2, Clock, Users } from "lucide-react";
 
 import { KPICard } from "@/components/ui/KPICard";
+import type { StudyTrendSeries } from "@/lib/dashboard/study-trend";
 
 import type { CanFn } from "./_shared/types";
+import { TotalStudiesKpiCard } from "./TotalStudiesKpiCard";
 
 export type DashboardKpiRowProps = {
   can: CanFn;
   patientsCount: number;
   studiesCount: number;
+  studyTrend: StudyTrendSeries;
   pendingCount: number;
   completedToday: number;
   loading?: boolean;
@@ -23,6 +26,7 @@ export function DashboardKpiRow({
   can,
   patientsCount,
   studiesCount,
+  studyTrend,
   pendingCount,
   completedToday,
   loading,
@@ -43,6 +47,11 @@ export function DashboardKpiRow({
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <TotalStudiesKpiCard
+        value={studiesCount}
+        trend={studyTrend}
+        can={can("quantitative_metrics")}
+      />
       <KPICard
         icon={<Users className="text-blue-500" />}
         label="Active Patients"
@@ -50,14 +59,6 @@ export function DashboardKpiRow({
         href="/patients"
         color="blue"
         can={can("manage_patients")}
-      />
-      <KPICard
-        icon={<FileText className="text-sky-500" />}
-        label="Total Studies"
-        value={studiesCount}
-        href="/studies"
-        color="sky"
-        can={can("quantitative_metrics")}
       />
       <KPICard
         icon={<Clock className="text-amber-500" />}

@@ -8,10 +8,10 @@ Pins and commands for reproducing training, OOF evaluation, and the Docker platf
 | Python | 3.11+ |
 | MONAI | `1.4.0` |
 | PyTorch | `>=2.5.0` |
-| Config | `ai/configs/hybrid_attention_v1.json` (`skip_mode: "coord_only"`) |
-| Checkpoint | `ai/checkpoints/model.pt` (fold 4) |
-| Architecture id | `lightweight_attunet` (registry key for production Coordinate Attention) |
-| Release | [`v1.0.0-coord-attention`](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) (Apache-2.0) — pending: upload the coord-attention checkpoint there (the old `v1.0.0-lightweight-attunet` asset is Full CISA and does **not** match the current default) |
+| Config | `ai/configs/hybrid_attention_v1.json` (`skip_mode: "full"`) |
+| Checkpoint | `ai/checkpoints/model.pt` (fold 4) — trained as Full CISA (has `inter_slice` skip weights) |
+| Architecture id | `lightweight_attunet` (registry key for production checkpoint) |
+| Release | [`v1.0.0-coord-attention`](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) (Apache-2.0) — the published asset is Full CISA weights, so `skip_mode` **must** stay `"full"` to match it. Swap to `"coord_only"` only after a real coordinate-attention-only checkpoint is published; loading Full CISA weights with `skip_mode: "coord_only"` drops the 12 `inter_slice` tensors and degrades segmentation quality (`backend/services/ai/mri_pipeline.py` now raises instead of silently continuing on any key mismatch). |
 | Dataset | MSD Task04 Hippocampus via official MONAI Decathlon download (canonical); Kaggle optional mirror only |
 | Matched variants | `plain_unet` \| `coord_attention` \| `full_cisa` |
 

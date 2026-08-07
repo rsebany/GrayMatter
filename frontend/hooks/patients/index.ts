@@ -10,3 +10,4 @@ export {
   usePatientMutations,
 } from "./use-patient-mutations";
 export { usePatientsPage } from "./use-patients-page";
+export { useQuickRegistry } from "./use-quick-registry";

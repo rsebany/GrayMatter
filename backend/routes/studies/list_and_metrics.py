@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import random
 import shutil
 from pathlib import Path
 from typing import Annotated
@@ -199,7 +198,7 @@ def _run_ai_on_study(
             seg.consolidation_burden = class_metrics["consolidation_burden"]
             seg.zonal_distribution = zonal_map
             seg.mesh_url = mesh_url
-            seg.dice_score = round(random.uniform(92.0, 96.0), 1)
+            seg.dice_score = ai_result.get("dice_score")
             seg.mask_path = str(mask_disk_path)
             seg.mask_bytes = None
             seg.mask_shape = ",".join(str(x) for x in mask.shape)
