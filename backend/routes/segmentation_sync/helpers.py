@@ -11,15 +11,14 @@ from fastapi import HTTPException
 from models.models import StudyORM
 from routes.studies.common import StudyVolume, _load_study_volume
 from schemas import SegmentationRevisionCreate, SegmentationRevisionInfo
-from services.core.paths import DICOM_STORAGE
-from services.sync.segmentation import LABEL_CONTRACT
+from services.core.paths import DICOM_STORAGE, SYNC_STORAGE
+from services.sync.segmentation import LABEL_CONTRACT, resolve_revision_mask_path
 from sqlalchemy.orm import Session
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-_REQUIRED_LABELS = frozenset({"background", "left", "right"})
 _SPACING_TOLERANCE_MM = 0.2
 _SUPPORTED_ORIENTATION = "zyx"
 
@@ -71,10 +70,29 @@ def as_revision_info(study_id: str, item: dict[str, Any]) -> SegmentationRevisio
         source=str(item["source"]),
         revision_note=item.get("revision_note"),
         created_at=datetime.fromisoformat(item["created_at"]),
+        updated_at=(
+            datetime.fromisoformat(item["updated_at"]) if item.get("updated_at") else None
+        ),
+        accepted_at=(
+            datetime.fromisoformat(item["accepted_at"]) if item.get("accepted_at") else None
+        ),
+        failed_at=(
+            datetime.fromisoformat(item["failed_at"]) if item.get("failed_at") else None
+        ),
+        status=item.get("status", "accepted"),
+        failure_reason=(
+            "Revision processing failed." if item.get("status") == "failed" else None
+        ),
+        authenticated_user_id=None,
+        module_name=item.get("module_name"),
+        module_version=item.get("module_version"),
+        workstation_id=None,
+        rollback_of_revision_id=item.get("rollback_of_revision_id"),
         geometry=item["geometry"],
         labels=item.get("labels") or LABEL_CONTRACT,
         mask_url=to_mask_url(study_id, int(item["revision_id"])),
         mesh_url=item.get("mesh_url"),
+        stl_url=item.get("stl_url"),
     )
 
 
@@ -142,12 +160,13 @@ def validate_spacing_matches_dicom(
 
 
 def validate_revision_labels(labels: dict) -> dict:
-    if set(labels.keys()) != _REQUIRED_LABELS:
+    normalized = {str(key): int(value) for key, value in labels.items()}
+    if normalized != LABEL_CONTRACT:
         raise HTTPException(
             status_code=422,
-            detail=f"labels must contain exactly {sorted(_REQUIRED_LABELS)}.",
+            detail="labels must map exactly to background=0, left=1, right=2.",
         )
-    return dict(labels)
+    return normalized
 
 
 def assert_mask_changed(
@@ -157,12 +176,33 @@ def assert_mask_changed(
     revisions = manifest.get("revisions", [])
     if not revisions:
         return
-    latest = revisions[-1]
+    current_revision_id = int(manifest.get("current_revision_id", 0))
+    latest = next(
+        (
+            item
+            for item in reversed(revisions)
+            if int(item.get("revision_id", 0)) == current_revision_id
+            or (
+                current_revision_id == 0
+                and item.get("status", "accepted") == "accepted"
+            )
+        ),
+        None,
+    )
+    if latest is None:
+        return
     if not latest.get("mask_path"):
         return
-    latest_mask_path = Path(str(latest["mask_path"]))
+    try:
+        latest_mask_path = resolve_revision_mask_path(
+            SYNC_STORAGE,
+            str(manifest.get("study_id", "")),
+            str(latest["mask_path"]),
+        )
+    except ValueError:
+        return
     if not latest_mask_path.exists():
         return
-    previous = np.load(latest_mask_path).astype(np.uint8)
+    previous = np.load(latest_mask_path, allow_pickle=False).astype(np.uint8)
     if previous.shape == mask.shape and np.array_equal(previous, mask):
         raise HTTPException(status_code=409, detail="Revision ignored: mask content is unchanged.")

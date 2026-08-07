@@ -15,6 +15,10 @@ import type {
   ArchitectureOption,
   DicomVolumeShape,
   ExpertMaskCompareResponse,
+  SegmentationRevisionInfo,
+  SegmentationRollbackRequest,
+  SegmentationSyncStatus,
+  SegmentationUpdateResponse,
   StudyListItem,
   StudyMetrics,
   UploadStudyPatientPayload,
@@ -310,6 +314,79 @@ export function getStudyEventsUrl(studyId: string): string {
   const query = params.toString();
   const base = buildApiUrl(joinRoute(ROUTES.studies, studyId, "events"));
   return query ? `${base}?${query}` : base;
+}
+
+export async function getSegmentationSyncStatus(
+  studyId: string,
+): Promise<SegmentationSyncStatus> {
+  return apiFetch<SegmentationSyncStatus>(
+    joinRoute(ROUTES.studies, studyId, "segmentation-sync", "status"),
+    { method: "GET" },
+  );
+}
+
+export async function listSegmentationRevisions(
+  studyId: string,
+): Promise<SegmentationRevisionInfo[]> {
+  return apiFetch<SegmentationRevisionInfo[]>(
+    joinRoute(ROUTES.studies, studyId, "segmentation-revisions"),
+    { method: "GET" },
+  );
+}
+
+export function getSegmentationRevisionMaskUrl(
+  studyId: string,
+  revisionId: number,
+): string {
+  return buildApiUrl(
+    joinRoute(
+      ROUTES.studies,
+      studyId,
+      "segmentation-revisions",
+      revisionId,
+      "mask",
+    ),
+  );
+}
+
+export async function getSegmentationRevisionMask(
+  studyId: string,
+  revisionId: number,
+): Promise<{ blob: Blob; shape: [number, number, number] }> {
+  const response = await apiFetchRawAllow404(
+    joinRoute(
+      ROUTES.studies,
+      studyId,
+      "segmentation-revisions",
+      revisionId,
+      "mask",
+    ),
+    { method: "GET" },
+  );
+  if (!response) {
+    throw new Error("Revision mask is not available.");
+  }
+  return {
+    blob: await response.blob(),
+    shape: parseMaskShapeHeader(response.headers.get("X-Mask-Shape")),
+  };
+}
+
+export async function rollbackSegmentationRevision(
+  studyId: string,
+  revisionId: number,
+  payload: SegmentationRollbackRequest = {},
+): Promise<SegmentationUpdateResponse> {
+  return apiFetch<SegmentationUpdateResponse>(
+    joinRoute(
+      ROUTES.studies,
+      studyId,
+      "segmentation-revisions",
+      revisionId,
+      "rollback",
+    ),
+    { method: "POST", body: payload },
+  );
 }
 
 // ---------------------------------------------------------------------------

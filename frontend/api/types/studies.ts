@@ -180,23 +180,78 @@ export type DicomVolumeShape = {
   spacing_x_mm: number;
 };
 
-/** SSE payloads from `GET /studies/{id}/events`. */
+export type SegmentationRevisionStatus = "pending" | "accepted" | "failed";
+export type SegmentationRevisionSource =
+  | "ai"
+  | "slicer"
+  | "slicer_bridge"
+  | "manual"
+  | (string & {});
+
+export interface SegmentationGeometry {
+  shape_zyx: [number, number, number];
+  spacing_zyx_mm: [number, number, number];
+  orientation: string;
+}
+
+export interface SegmentationRevisionInfo {
+  revision_id: number;
+  source: SegmentationRevisionSource;
+  revision_note?: string | null;
+  created_at: string;
+  updated_at?: string | null;
+  accepted_at?: string | null;
+  failed_at?: string | null;
+  status: SegmentationRevisionStatus;
+  failure_reason?: string | null;
+  authenticated_user_id?: string | null;
+  module_name?: string | null;
+  module_version?: string | null;
+  workstation_id?: string | null;
+  rollback_of_revision_id?: number | null;
+  geometry: SegmentationGeometry;
+  labels: Record<string, number>;
+  mask_url: string;
+  mesh_url?: string | null;
+  stl_url?: string | null;
+}
+
+export interface SegmentationSyncStatus {
+  study_id: string;
+  current_revision_id: number;
+  latest?: SegmentationRevisionInfo | null;
+}
+
+export interface SegmentationRollbackRequest {
+  revision_note?: string | null;
+  module_name?: string | null;
+  module_version?: string | null;
+  workstation_id?: string | null;
+}
+
+export interface SegmentationUpdateResponse {
+  study_id: string;
+  revision_id: number;
+  accepted_at: string;
+  status: "accepted";
+  mesh_url?: string | null;
+  stl_url?: string | null;
+  metrics: Record<string, number>;
+}
+
+interface StudyAcceptedRevisionEvent {
+  event: "segmentation.updated" | "mesh.updated" | "metrics.updated";
+  study_id: string;
+  revision_id: number;
+  mesh_url?: string;
+  stl_url?: string;
+  metrics?: Record<string, number>;
+  zonal_distribution?: Record<string, number>;
+  ts?: string;
+  processing_ms?: number;
+}
+
+/** SSE payloads from `GET /studies/{id}/events`, including its initial snapshot. */
 export type StudySyncEvent =
-  | {
-      event: "mesh.updated";
-      study_id: string;
-      revision_id: number;
-      mesh_url?: string;
-      metrics?: Record<string, number>;
-      zonal_distribution?: Record<string, number>;
-      ts?: string;
-    }
-  | {
-      event: "segmentation.status";
-      study_id: string;
-      current_revision_id: number;
-      latest?: {
-        revision_id: number;
-        mesh_url?: string | null;
-      } | null;
-    };
+  | StudyAcceptedRevisionEvent
+  | (SegmentationSyncStatus & { event: "segmentation.status" });

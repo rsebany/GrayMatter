@@ -39,6 +39,42 @@ MRI dataset is **not** required to run the app (upload volumes in the UI). For t
 
 More detail: [docs/INSTALL.md](docs/INSTALL.md).
 
+## 3D Slicer setup
+
+GrayMatter includes a scripted 3D Slicer 5.x module for reviewing and correcting
+AI hippocampus segmentations.
+
+1. In Slicer, enable **Edit → Application Settings → Developer → Developer
+   mode**.
+2. Under **Application Settings → Modules → Additional module paths**, add:
+
+   ```text
+   <GrayMatter>\backend\scripts\integrations\GrayMatterSlicer\GrayMatterSlicer
+   ```
+
+3. Restart Slicer and open **Modules → Informatics → GrayMatter**.
+4. Enter the API URL (`http://localhost/api`), the `ST-...` study ID, and the
+   same account used by the web app.
+5. Choose a separate workspace folder, such as
+   `C:\Users\<you>\Desktop\GrayMatterSlicerData`. Do not use the module source
+   directory and do not append the study ID yourself.
+6. Click **Pull and load**, edit the left/right segments in Segment Editor, add
+   a revision note, then click **Export and push**.
+
+On a successful push, the backend validates geometry and labels, stores an
+immutable revision, updates the active mask, recalculates metrics, regenerates
+GLB/STL meshes, and publishes live events. An open View 3D page shows a success
+toast and refreshes its mesh, metrics, sync status, and revision history without
+a page reload. This is a live confirmation, not a persistent notification-center
+entry.
+
+On Windows, select **Remember me** before logging in to store the one-week
+session token in Windows Credential Manager; the password is never stored.
+**Forget saved login** removes it.
+
+Full setup, CLI usage, troubleshooting, and security notes:
+[docs/SLICER.md](docs/SLICER.md).
+
 ## Layout
 
 ```

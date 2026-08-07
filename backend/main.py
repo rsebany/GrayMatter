@@ -6,9 +6,34 @@ import logging
 import os
 import socket
 import sys
+import re
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+class _SensitiveQueryFilter(logging.Filter):
+    _TOKEN_RE = re.compile(r"(?i)(access_token=)[^&\s]+")
+    _AUTH_RE = re.compile(r"(?i)(authorization:\s*bearer\s+)[^\s,;]+")
+
+    @classmethod
+    def _redact(cls, value):
+        if not isinstance(value, str):
+            return value
+        return cls._AUTH_RE.sub(r"\1[REDACTED]", cls._TOKEN_RE.sub(r"\1[REDACTED]", value))
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.msg = self._redact(record.msg)
+        if isinstance(record.args, tuple):
+            record.args = tuple(self._redact(value) for value in record.args)
+        elif isinstance(record.args, dict):
+            record.args = {
+                key: self._redact(value) for key, value in record.args.items()
+            }
+        return True
+
+
+logging.getLogger("uvicorn.access").addFilter(_SensitiveQueryFilter())
 
 # ---------------------------------------------------------------------------
 # Environment & paths
@@ -132,6 +157,19 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    """Apply conservative browser and cache controls to API responses."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    if request.url.path.startswith(("/auth", "/studies")):
+        response.headers.setdefault("Cache-Control", "no-store")
+    return response
+
+
 @app.on_event("startup")
 def startup_event() -> None:
     """Initialize DB and log LAN / Slicer hints for local development."""
@@ -157,10 +195,15 @@ def startup_event() -> None:
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+_cors_origins = [
+    value.strip()
+    for value in os.environ.get("GRAYMATTER_CORS_ORIGINS", "*").split(",")
+    if value.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=_cors_origins or ["*"],
+    allow_credentials="*" not in _cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["X-Mask-Shape"],

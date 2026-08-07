@@ -1,25 +1,32 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { studyService, type DicomVolumeShape } from "@/services/study";
+import type { StudySyncEvent } from "@/api/domain";
+import { apiFetchRaw, buildApiUrl } from "@/api/http/client";
 import {
   ThreeViewer,
   type MeshClassKey,
   type MeshClassVisibility,
 } from "@/components/features/viewer/xr/viewers/ThreeViewer";
-import { imagingContextFromSearchParams, imagingContextQuery } from "@/lib/imaging";
+import { imagingContextFromSearchParams } from "@/lib/imaging";
 import { buildSegmentationMetricGroups } from "@/lib/metrics/segmentation-metric-groups";
 import {
   defaultWindowPresetKey,
   windowPresetsForModality,
 } from "@/lib/viewer/window-presets";
 import { useVolumeDisplayUnit } from "@/hooks/settings";
-import { useStudiesList, useStudyMetrics, useArchitectureSelection } from "@/hooks/studies";
+import {
+  segmentationSyncKeys,
+  useStudiesList,
+  useStudyMetrics,
+  useArchitectureSelection,
+} from "@/hooks/studies";
 import {
   useDicomLoader,
   useResolvedStudyId,
@@ -29,6 +36,7 @@ import { View2DPanelLeftColumn } from "@/components/features/viewer/view2d/View2
 import { View2DPanelRightColumn } from "@/components/features/viewer/view2d/View2DPanelRightColumn";
 import { SegmentationClassLegend } from "@/components/features/viewer/ui/SegmentationClassLegend";
 import { Switch } from "@/components/ui/switch";
+import { SlicerSyncPanel } from "@/components/features/viewer/SlicerSyncPanel";
 
 type Orientation = "axial" | "coronal" | "sagittal";
 type SurfaceRenderMode = "semi" | "solid";
@@ -46,7 +54,6 @@ export function View3DReconstructionPanel() {
   const meshFallback = searchParams.get("mesh");
 
   const studyId = useResolvedStudyId({ studyIdParam, patientId });
-  const ctx = imagingContextQuery({ patientId, studyId: studyId || null });
 
   const { files, status: dicomLoadStatus, error: dicomLoadError } = useDicomLoader(
     studyId,
@@ -84,6 +91,8 @@ export function View3DReconstructionPanel() {
   const [reanalyzeLoading, setReanalyzeLoading] = useState(false);
   const [reanalyzeError, setReanalyzeError] = useState<string | null>(null);
   const [meshReloadToken, setMeshReloadToken] = useState(0);
+  const [syncConnected, setSyncConnected] = useState(false);
+  const lastAcceptedRevisionRef = useRef(0);
   /** On by default so the marching-cubes GLB (same asset as XR lab) is visible, including in WebXR. */
   const [showAiMesh, setShowAiMesh] = useState(true);
   const [hasSegmentationMesh, setHasSegmentationMesh] = useState(false);
@@ -127,6 +136,140 @@ export function View3DReconstructionPanel() {
       })
       .finally(() => setLoading(false));
   }, [studyId, meshFallback, meshReloadToken]);
+
+  useEffect(() => {
+    if (!studyId) {
+      setSyncConnected(false);
+      lastAcceptedRevisionRef.current = 0;
+      return;
+    }
+
+    const controller = new AbortController();
+    let reconnectTimer: number | undefined;
+
+    const handleSyncEvent = (event: StudySyncEvent) => {
+      if (event.event === "segmentation.status") {
+        const revision = event.current_revision_id || 0;
+        lastAcceptedRevisionRef.current = Math.max(
+          lastAcceptedRevisionRef.current,
+          revision,
+        );
+        const meshPath = event.latest?.mesh_url;
+        if (meshPath) {
+          const resolved = buildApiUrl(meshPath);
+          setMeshUrl(
+            `${resolved}${resolved.includes("?") ? "&" : "?"}revision=${revision}`,
+          );
+          setHasSegmentationMesh(true);
+        }
+        void queryClient.invalidateQueries({
+          queryKey: segmentationSyncKeys.status(studyId),
+        });
+        return;
+      }
+
+      const revision = event.revision_id || 0;
+      if (revision <= lastAcceptedRevisionRef.current) return;
+      lastAcceptedRevisionRef.current = revision;
+
+      if (event.mesh_url) {
+        const resolved = buildApiUrl(event.mesh_url);
+        setMeshUrl(
+          `${resolved}${resolved.includes("?") ? "&" : "?"}revision=${revision}`,
+        );
+        setHasSegmentationMesh(true);
+        setShowAiMesh(true);
+        setError(null);
+      } else {
+        setMeshReloadToken((token) => token + 1);
+      }
+
+      toast.success(`3D Slicer revision ${revision} synchronized.`, {
+        id: `slicer-sync-${studyId}-${revision}`,
+      });
+
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["studies", "metrics", studyId],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["studies"] }),
+        queryClient.invalidateQueries({
+          queryKey: segmentationSyncKeys.status(studyId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: segmentationSyncKeys.revisions(studyId),
+        }),
+      ]);
+    };
+
+    const connect = async () => {
+      if (controller.signal.aborted) return;
+      try {
+        const response = await apiFetchRaw(
+          `/studies/${encodeURIComponent(studyId)}/events`,
+          {
+            method: "GET",
+            headers: { Accept: "text/event-stream" },
+            signal: controller.signal,
+            jsonBody: false,
+          },
+        );
+        if (!response.body) throw new Error("SSE response body is unavailable.");
+        setSyncConnected(true);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (!controller.signal.aborted) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true }).replaceAll("\r\n", "\n");
+          let boundary = buffer.indexOf("\n\n");
+          while (boundary >= 0) {
+            const block = buffer.slice(0, boundary);
+            buffer = buffer.slice(boundary + 2);
+            let eventName = "message";
+            const dataLines: string[] = [];
+            for (const line of block.split("\n")) {
+              if (line.startsWith("event:")) eventName = line.slice(6).trim();
+              if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
+            }
+            if (dataLines.length) {
+              try {
+                const payload = JSON.parse(dataLines.join("\n")) as Record<
+                  string,
+                  unknown
+                >;
+                handleSyncEvent({
+                  ...payload,
+                  event: (payload.event as string | undefined) ?? eventName,
+                } as StudySyncEvent);
+              } catch {
+                // Ignore malformed event payloads and keep the stream alive.
+              }
+            }
+            boundary = buffer.indexOf("\n\n");
+          }
+        }
+      } catch (streamError) {
+        if (!controller.signal.aborted) {
+          console.warn("Study sync stream disconnected.", streamError);
+        }
+      } finally {
+        if (!controller.signal.aborted) setSyncConnected(false);
+      }
+      if (!controller.signal.aborted) {
+        reconnectTimer = window.setTimeout(() => void connect(), 2000);
+      }
+    };
+
+    void connect();
+    return () => {
+      controller.abort();
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      setSyncConnected(false);
+    };
+  }, [queryClient, studyId]);
 
   useEffect(() => {
     const preset = windowPresets[defaultPresetKey];
@@ -390,6 +533,10 @@ export function View3DReconstructionPanel() {
               onToggle={toggleClass}
               shellLabel="Brain"
             />
+          )}
+
+          {studyId && (
+            <SlicerSyncPanel studyId={studyId} connected={syncConnected} />
           )}
 
           <div className="relative min-h-[280px] flex-1 overflow-hidden rounded-xl border border-border bg-[#020617] shadow-inner md:min-h-[300px]">

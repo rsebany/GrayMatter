@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+import math
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -12,15 +13,15 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 class SignupRequest(BaseModel):
-    full_name: str
+    full_name: str = Field(..., min_length=1, max_length=200)
     email: EmailStr
-    role: str
-    password: str
+    role: Literal["radiologist", "referring_physician"] = "radiologist"
+    password: str = Field(..., min_length=8, max_length=72)
 
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=1, max_length=72)
 
 
 class ForgotPasswordRequest(BaseModel):
@@ -28,8 +29,8 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str
+    token: str = Field(..., min_length=16, max_length=256)
+    new_password: str = Field(..., min_length=8, max_length=72)
 
 
 class UserResponse(BaseModel):
@@ -69,6 +70,23 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+class SlicerTokenRequest(BaseModel):
+    study_id: str = Field(
+        ...,
+        min_length=1,
+        max_length=128,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$",
+    )
+
+
+class SlicerTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    scope: Literal["segmentation:write"] = "segmentation:write"
+    study_id: str
+    expires_at: datetime
 
 
 # ---------------------------------------------------------------------------
@@ -262,20 +280,27 @@ class SegmentationGeometry(BaseModel):
 
     shape_zyx: list[int] = Field(..., min_length=3, max_length=3)
     spacing_zyx_mm: list[float] = Field(..., min_length=3, max_length=3)
-    orientation: str = "zyx"
+    orientation: str = Field(default="zyx", min_length=3, max_length=8)
 
     @field_validator("shape_zyx")
     @classmethod
     def _validate_shape(cls, value: list[int]) -> list[int]:
-        if len(value) != 3 or any(int(v) <= 0 for v in value):
-            raise ValueError("shape_zyx must contain exactly 3 positive integers")
+        if (
+            len(value) != 3
+            or any(int(v) <= 0 or int(v) > 8192 for v in value)
+            or math.prod(int(v) for v in value) > 96_000_000
+        ):
+            raise ValueError("shape_zyx exceeds the supported 3D volume limits")
         return [int(v) for v in value]
 
     @field_validator("spacing_zyx_mm")
     @classmethod
     def _validate_spacing(cls, value: list[float]) -> list[float]:
-        if len(value) != 3 or any(float(v) <= 0 for v in value):
-            raise ValueError("spacing_zyx_mm must contain exactly 3 positive values")
+        if len(value) != 3 or any(
+            not math.isfinite(float(v)) or float(v) <= 0 or float(v) > 1000
+            for v in value
+        ):
+            raise ValueError("spacing_zyx_mm must contain 3 finite values in (0, 1000]")
         return [float(v) for v in value]
 
 
@@ -283,17 +308,31 @@ class SegmentationRevisionCreate(BaseModel):
     """Slicer / AI push payload for ``POST .../segmentation-revisions``."""
 
     source: Literal["ai", "slicer", "slicer_bridge", "manual"] = "slicer_bridge"
-    revision_note: str | None = None
+    revision_note: str | None = Field(default=None, max_length=1000)
+    module_name: str | None = Field(default=None, max_length=200)
+    module_version: str | None = Field(default=None, max_length=100)
+    workstation_id: str | None = Field(default=None, max_length=200)
     geometry: SegmentationGeometry
     labels: dict[str, int] = Field(
         default_factory=lambda: {
             "background": 0,
-            "ggo": 1,
-            "reticulation": 2,
-            "consolidation": 3,
-        }
+            "left": 1,
+            "right": 2,
+        },
+        min_length=3,
+        max_length=3,
     )
-    mask_b64: str = Field(..., min_length=4)
+    mask_b64: str = Field(..., min_length=4, max_length=128_000_000)
+
+    @field_validator("revision_note", "module_name", "module_version", "workstation_id")
+    @classmethod
+    def _reject_control_characters(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if any(ord(char) < 32 and char not in "\t" for char in cleaned):
+            raise ValueError("metadata must not contain control characters")
+        return cleaned or None
 
 
 class SegmentationRevisionInfo(BaseModel):
@@ -301,10 +340,21 @@ class SegmentationRevisionInfo(BaseModel):
     source: str
     revision_note: str | None = None
     created_at: datetime
+    updated_at: datetime | None = None
+    accepted_at: datetime | None = None
+    failed_at: datetime | None = None
+    status: Literal["pending", "accepted", "failed"] = "accepted"
+    failure_reason: str | None = None
+    authenticated_user_id: str | None = None
+    module_name: str | None = None
+    module_version: str | None = None
+    workstation_id: str | None = None
+    rollback_of_revision_id: int | None = None
     geometry: SegmentationGeometry
     labels: dict[str, int]
     mask_url: str
     mesh_url: str | None = None
+    stl_url: str | None = None
 
 
 class SegmentationSyncStatus(BaseModel):
@@ -317,9 +367,17 @@ class SegmentationUpdateResponse(BaseModel):
     study_id: str
     revision_id: int
     accepted_at: datetime
+    status: Literal["accepted"] = "accepted"
     mesh_url: str | None = None
     stl_url: str | None = None
     metrics: dict[str, float] = Field(default_factory=dict)
+
+
+class SegmentationRollbackCreate(BaseModel):
+    revision_note: str | None = Field(default=None, max_length=1000)
+    module_name: str | None = Field(default=None, max_length=200)
+    module_version: str | None = Field(default=None, max_length=100)
+    workstation_id: str | None = Field(default=None, max_length=200)
 
 
 # ---------------------------------------------------------------------------
@@ -418,9 +476,12 @@ __all__ = [
     "SegmentationResult",
     "SegmentationRevisionCreate",
     "SegmentationRevisionInfo",
+    "SegmentationRollbackCreate",
     "SegmentationSyncStatus",
     "SegmentationUpdateResponse",
     "SignupRequest",
+    "SlicerTokenRequest",
+    "SlicerTokenResponse",
     "Study",
     "StudyListItem",
     "StudyMetrics",

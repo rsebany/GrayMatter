@@ -4,6 +4,7 @@
  */
 export { View2DPanel } from "./View2DPanel";
 export { View3DReconstructionPanel } from "./View3DReconstructionPanel";
+export { SlicerSyncPanel } from "./SlicerSyncPanel";
 export {
   ImagingWorkspacePage,
   type ImagingWorkspacePageProps,

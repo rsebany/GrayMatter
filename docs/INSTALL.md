@@ -34,6 +34,11 @@ MRI data under `dataset/` is **not** required to run the UI. See [dataset/README
 |----------|------|
 | `DATABASE_URL` | PostgreSQL |
 | `GRAYMATTER_JWT_SECRET` | JWT signing |
+| `GRAYMATTER_SLICER_TOKEN_TTL_MINUTES` | Study-scoped Slicer write-token lifetime, 1–60 minutes |
+| `GRAYMATTER_SEGMENTATION_REVISION_RETENTION` | Revision masks/history retained per study (current accepted revision is preserved) |
+| `GRAYMATTER_EVENT_BACKEND` | `memory` for one API process, or `redis` for shared SSE fan-out |
+| `GRAYMATTER_REDIS_URL` | Redis URL used when the event backend is `redis` |
+| `GRAYMATTER_CORS_ORIGINS` | Comma-separated allowed browser origins; set explicit HTTPS origins in production |
 | `GRAYMATTER_AI_ROOT` | `/app/ai` in Docker |
 | `GRAYMATTER_CHECKPOINT` | `/app/ai/checkpoints/model.pt` |
 | `NEXT_PUBLIC_API_BASE_URL` | `/api` |
@@ -46,6 +51,25 @@ docker compose up --build -d
 docker compose logs -f backend
 docker compose down
 ```
+
+## Multi-process and security notes
+
+The default `memory` event backend is suitable for a single API process. Set
+`GRAYMATTER_EVENT_BACKEND=redis` to use the Redis service included in
+`docker-compose.yml` when multiple API workers must share segmentation SSE
+events. If Redis configuration or connectivity is unavailable, the backend
+falls back to process-local delivery and logs a warning without event payloads.
+All workers must also share the same revision/mask storage volume; revision
+activation uses per-study advisory lock files on that volume, and Redis does
+not replace shared artifact storage. Validate advisory-lock behavior before
+using network filesystems with unusual locking semantics.
+
+For a shared deployment, replace all example passwords and JWT secrets, serve
+the stack behind TLS, set explicit `GRAYMATTER_CORS_ORIGINS`, disable demo
+`SEED_*` credentials, and back up database and revision storage. Sensitive API
+responses use no-store and browser hardening headers. These controls support
+practical deployment hardening but do not constitute PACS integration or
+regulatory compliance.
 
 ## More
 

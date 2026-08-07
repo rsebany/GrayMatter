@@ -8,7 +8,12 @@ from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from auth.roles import has_permission
-from auth.tokens import TokenPayload, decode_token, get_token_payload
+from auth.tokens import (
+    TokenPayload,
+    decode_token,
+    get_token_payload,
+    token_payload_from_claims,
+)
 
 # ---------------------------------------------------------------------------
 # Security scheme
@@ -25,17 +30,38 @@ bearer_scheme = HTTPBearer(auto_error=False)
 async def get_current_user_optional(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> TokenPayload | None:
-    return get_token_payload(credentials)
+    payload = get_token_payload(credentials)
+    return payload if payload and payload.token_type == "access" else None
 
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
 ) -> TokenPayload:
     payload = get_token_payload(credentials)
-    if not payload:
+    if not payload or payload.token_type != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return payload
+
+
+async def get_slicer_integration_user(
+    study_id: str,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+) -> TokenPayload:
+    """Require a Slicer token scoped to revision writes for this exact study."""
+    payload = get_token_payload(credentials)
+    if (
+        not payload
+        or payload.token_type != "slicer_integration"
+        or payload.scope != "segmentation:write"
+        or payload.study_id != study_id
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A valid Slicer integration token scoped to this study is required",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return payload
@@ -48,13 +74,7 @@ def _token_payload_from_raw_token(token: str | None) -> TokenPayload | None:
     if not payload:
         return None
 
-    return TokenPayload(
-        sub=payload.get("sub", ""),
-        email=payload.get("email", ""),
-        role=payload.get("role", "radiologist"),
-        medical_id=payload.get("medical_id", ""),
-        full_name=payload.get("full_name", ""),
-    )
+    return token_payload_from_claims(payload)
 
 
 async def get_current_user_from_bearer_or_query(
@@ -63,7 +83,7 @@ async def get_current_user_from_bearer_or_query(
 ) -> TokenPayload:
     """Bearer auth, or ``?access_token=`` for image/SSE clients that cannot set headers."""
     payload = get_token_payload(credentials) or _token_payload_from_raw_token(access_token)
-    if not payload:
+    if not payload or payload.token_type != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
@@ -98,5 +118,6 @@ __all__ = [
     "get_current_user",
     "get_current_user_from_bearer_or_query",
     "get_current_user_optional",
+    "get_slicer_integration_user",
     "require_role",
 ]

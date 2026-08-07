@@ -7,13 +7,23 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from models.db import get_session
 from models.models import ROLE_RADIOLOGIST, UserORM
-from schemas import AuthResponse, LoginRequest, SignupRequest, UserResponse
+from schemas import (
+    AuthResponse,
+    LoginRequest,
+    SignupRequest,
+    SlicerTokenRequest,
+    SlicerTokenResponse,
+    UserResponse,
+)
 from sqlalchemy.orm import Session
 
 from auth import (
     _generate_medical_id,
     create_access_token,
+    create_slicer_integration_token,
     get_current_user,
+    get_owned_study_or_404,
+    has_permission,
     hash_password,
     verify_password,
 )
@@ -108,4 +118,35 @@ def me(current_user: Annotated[TokenPayload, Depends(get_current_user)]) -> User
         full_name=current_user.full_name,
         email=current_user.email,
         role=current_user.role,
+    )
+
+
+@router.post(
+    "/slicer-token",
+    response_model=SlicerTokenResponse,
+    summary="Issue a short-lived study-scoped Slicer integration token",
+    name="auth_slicer_token",
+)
+def slicer_token(
+    body: SlicerTokenRequest,
+    current_user: Annotated[TokenPayload, Depends(get_current_user)],
+) -> SlicerTokenResponse:
+    """Exchange a normal authenticated session for a narrow revision-write token."""
+    if not has_permission(current_user.role, "trigger_ai"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Segmentation editing permission is required",
+        )
+    with get_session() as session:
+        get_owned_study_or_404(session, body.study_id, current_user)
+    token, expires_at = create_slicer_integration_token(
+        current_user.model_dump(
+            include={"sub", "email", "role", "medical_id", "full_name"}
+        ),
+        body.study_id,
+    )
+    return SlicerTokenResponse(
+        access_token=token,
+        study_id=body.study_id,
+        expires_at=expires_at,
     )
