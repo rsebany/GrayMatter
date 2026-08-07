@@ -15,18 +15,23 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 import numpy as np
+import routes.segmentation_sync.endpoints as sync_endpoints
+from auth.dependencies import get_current_user, get_slicer_integration_user
+from auth.tokens import (
+    create_access_token,
+    create_slicer_integration_token,
+    decode_token,
+)
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
-
-import routes.segmentation_sync.endpoints as sync_endpoints
+from pydantic import ValidationError
 from routes.auth.session_routes import slicer_token
 from routes.segmentation_sync.endpoints import (
     _compensate_unaccepted_revision,
     _process_revision,
     _snapshot_segmentation_row,
 )
-from routes.segmentation_sync.helpers import validate_revision_labels
-from routes.segmentation_sync.helpers import as_revision_info
+from routes.segmentation_sync.helpers import as_revision_info, validate_revision_labels
 from schemas import (
     SegmentationGeometry,
     SegmentationRevisionCreate,
@@ -34,9 +39,6 @@ from schemas import (
     SignupRequest,
     SlicerTokenRequest,
 )
-from pydantic import ValidationError
-from auth.dependencies import get_current_user, get_slicer_integration_user
-from auth.tokens import create_access_token, create_slicer_integration_token, decode_token
 from services.studies.analysis_state import _analysis_cache
 from services.sync.events import StudyEventHub, create_study_event_hub
 from services.sync.segmentation import (
@@ -467,30 +469,29 @@ class RevisionCompensationTests(unittest.TestCase):
                     ),
                     fail_revision=fail_mock,
                     study_event_hub=SimpleNamespace(publish=publish_mock),
+                ), self.assertRaisesRegex(
+                    RuntimeError,
+                    "manifest replace failed",
                 ):
-                    with self.assertRaisesRegex(
-                        RuntimeError,
-                        "manifest replace failed",
-                    ):
-                        asyncio.run(
-                            _process_revision(
-                                study_id,
-                                current_user=SimpleNamespace(sub="42"),
-                                mask=new_mask,
-                                study_volume=SimpleNamespace(
-                                    data=np.zeros((1, 1, 1)),
-                                    spacing_zyx=(1.0, 1.0, 1.0),
-                                ),
-                                shape_zyx=(1, 1, 1),
-                                spacing_zyx_mm=(1.0, 1.0, 1.0),
-                                orientation="zyx",
-                                source="slicer",
-                                revision_note="test",
-                                module_name=None,
-                                module_version=None,
-                                workstation_id=None,
-                            )
+                    asyncio.run(
+                        _process_revision(
+                            study_id,
+                            current_user=SimpleNamespace(sub="42"),
+                            mask=new_mask,
+                            study_volume=SimpleNamespace(
+                                data=np.zeros((1, 1, 1)),
+                                spacing_zyx=(1.0, 1.0, 1.0),
+                            ),
+                            shape_zyx=(1, 1, 1),
+                            spacing_zyx_mm=(1.0, 1.0, 1.0),
+                            orientation="zyx",
+                            source="slicer",
+                            revision_note="test",
+                            module_name=None,
+                            module_version=None,
+                            workstation_id=None,
                         )
+                    )
 
                 fail_mock.assert_called_once()
                 publish_mock.assert_not_awaited()

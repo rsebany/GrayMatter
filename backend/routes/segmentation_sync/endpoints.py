@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import logging
 from pathlib import Path
 from time import perf_counter
 from typing import Annotated
@@ -18,14 +19,15 @@ from auth import (
     get_slicer_integration_user,
     has_permission,
 )
-from fastapi import APIRouter, Depends, HTTPException, Path as PathParam
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Path as PathParam
 from fastapi.responses import StreamingResponse
 from models.db import get_session
 from models.models import SegmentationResultORM
 from schemas import (
-    SegmentationRollbackCreate,
     SegmentationRevisionCreate,
     SegmentationRevisionInfo,
+    SegmentationRollbackCreate,
     SegmentationSyncStatus,
     SegmentationUpdateResponse,
 )
@@ -46,8 +48,8 @@ from services.sync.segmentation import (
     fail_revision,
     get_revision,
     load_manifest,
-    revision_lock,
     resolve_revision_mask_path,
+    revision_lock,
 )
 
 from .helpers import (
@@ -60,6 +62,8 @@ from .helpers import (
     validate_revision_labels,
     validate_spacing_matches_volume,
 )
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Router
@@ -217,7 +221,7 @@ def _compensate_unaccepted_revision(
     errors: list[Exception] = []
     try:
         _restore_active_mask(mask_disk_path, previous_active_mask)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - compensation must attempt every store
         errors.append(exc)
 
     if previous_segmentation_state is not None:
@@ -231,7 +235,7 @@ def _compensate_unaccepted_revision(
                     previous_segmentation_state,
                 )
                 session.flush()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - compensation must attempt every store
             errors.append(exc)
 
     try:
@@ -240,7 +244,7 @@ def _compensate_unaccepted_revision(
             existed=analysis_cache_existed,
             snapshot=previous_analysis_cache,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - compensation must attempt every store
         errors.append(exc)
 
     if errors:
@@ -386,7 +390,7 @@ async def _process_revision(
                     analysis_cache_existed=analysis_cache_existed,
                     previous_analysis_cache=previous_analysis_cache,
                 )
-            except Exception as compensation_exc:
+            except Exception as compensation_exc:  # noqa: BLE001
                 compensation_error = compensation_exc
         if compensation_error is not None:
             # Do not label a revision failed unless all active pointers were
@@ -403,8 +407,13 @@ async def _process_revision(
                     revision.revision_id,
                     "Revision processing failed.",
                 )
-        except Exception:
-            pass
+        except Exception:  # noqa: BLE001 - preserve the original processing failure
+            logger.warning(
+                "Could not mark failed segmentation revision %s for study %s.",
+                revision.revision_id,
+                study_id,
+                exc_info=True,
+            )
         raise
 
     # Events are deliberately emitted only after the accepted manifest is durable.

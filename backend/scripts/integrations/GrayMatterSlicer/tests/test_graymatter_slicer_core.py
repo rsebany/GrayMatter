@@ -1,12 +1,12 @@
 """Pure-Python checks for the Slicer integration core."""
 from __future__ import annotations
 
+import base64
+import io
 import json
 import sys
 import tempfile
 import unittest
-import base64
-import io
 import zipfile
 from pathlib import Path
 from unittest.mock import patch
@@ -16,7 +16,7 @@ import numpy as np
 MODULE_DIR = Path(__file__).resolve().parents[1] / "GrayMatterSlicer"
 sys.path.insert(0, str(MODULE_DIR))
 
-import GrayMatterSlicerCore as core  # noqa: E402
+import GrayMatterSlicerCore as core
 
 
 class GrayMatterSlicerCoreTests(unittest.TestCase):

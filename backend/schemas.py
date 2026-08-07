@@ -1,8 +1,8 @@
 """Pydantic request/response models shared by routes and services."""
 from __future__ import annotations
 
-from datetime import date, datetime
 import math
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator

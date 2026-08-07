@@ -5,9 +5,9 @@ import base64
 import binascii
 import json
 import os
+import re
 import tempfile
 import threading
-import re
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -33,11 +33,11 @@ __all__ = [
     "fail_revision",
     "get_revision",
     "load_manifest",
-    "revision_lock",
     "resolve_revision_mask_path",
-    "validate_study_id",
+    "revision_lock",
     "save_manifest",
     "validate_mask_values",
+    "validate_study_id",
 ]
 
 REVISION_STATUSES = frozenset({"pending", "accepted", "failed"})
@@ -151,7 +151,7 @@ def load_manifest(root: Path, study_id: str) -> dict[str, Any]:
     if not isinstance(manifest, dict) or manifest.get("study_id") != study_id:
         raise ValueError("Revision manifest study identifier is invalid.")
     if not isinstance(manifest.get("revisions", []), list):
-        raise ValueError("Revision manifest revisions must be a list.")
+        raise TypeError("Revision manifest revisions must be a list.")
     # Older manifests predate lifecycle statuses. They represent accepted revisions.
     for revision in manifest.get("revisions", []):
         revision.setdefault("status", "accepted")

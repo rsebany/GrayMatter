@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import ctk
+import GrayMatterSlicerCore as core
 import numpy as np
 import qt
 import slicer
@@ -15,8 +16,6 @@ from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModuleTest,
     ScriptedLoadableModuleWidget,
 )
-
-import GrayMatterSlicerCore as core
 
 # Slicer's developer Reload action reloads this file but normally leaves helper
 # modules cached. Reload the core explicitly so UI and helper updates stay aligned.
@@ -226,7 +225,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
             result = operation()
             self.log.appendPlainText(description + " complete.")
             return result
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - UI boundary reports operation failures
             self.log.appendPlainText("ERROR: " + str(exc))
             slicer.util.errorDisplay(str(exc), windowTitle="GrayMatter")
             return None
@@ -261,7 +260,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
             return
         try:
             saved = core.load_session_credential()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - corrupt OS credentials must not block UI
             self.log.appendPlainText("Could not load saved login: " + str(exc))
             return
         if not saved:
@@ -334,7 +333,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
         self.referenceVolumeNode = reference
         self.segmentationNode = segmentation
         self.studyState.text = "{} loaded".format(manifest["study_id"])
-        self.geometryState.text = "Valid — shape {}, spacing {} mm".format(shape, spacing)
+        self.geometryState.text = f"Valid — shape {shape}, spacing {spacing} mm"
         slicer.util.setSliceViewerLayers(background=reference, fit=True)
         slicer.util.selectModule("SegmentEditor")
 
@@ -370,7 +369,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
 
     def _createSegmentation(self, mask, reference, study_id):
         node = slicer.mrmlScene.AddNewNodeByClass(
-            "vtkMRMLSegmentationNode", "GrayMatter-{}".format(study_id)
+            "vtkMRMLSegmentationNode", f"GrayMatter-{study_id}"
         )
         node.SetReferenceImageGeometryParameterFromVolumeNode(reference)
         node.SetNodeReferenceID(
@@ -405,8 +404,8 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
         unexpected = sorted(present_ids - allowed_ids)
         if unexpected:
             raise ValueError(
-                "Segmentation contains unsupported segments: {}. "
-                "Only left and right hippocampus may be pushed.".format(unexpected)
+                f"Segmentation contains unsupported segments: {unexpected}. "
+                "Only left and right hippocampus may be pushed."
             )
 
         serverShape, serverSpacing = core.geometry_from_manifest(self.manifest)
@@ -425,9 +424,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
             )
             if array is None or tuple(array.shape) != shape:
                 raise ValueError(
-                    "{} segment geometry does not match the study.".format(
-                        core.LABEL_NAMES[label]
-                    )
+                    f"{core.LABEL_NAMES[label]} segment geometry does not match the study."
                 )
             selected = array > 0
             if np.any(occupied & selected):
@@ -444,9 +441,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
             serverSpacing,
             serverSpacing,
         )
-        self.geometryState.text = "Valid for push — shape {}, spacing {} mm".format(
-            serverShape, serverSpacing
-        )
+        self.geometryState.text = f"Valid for push — shape {serverShape}, spacing {serverSpacing} mm"
         return serverMask, serverSpacing
 
     def onExportAndPush(self):
@@ -463,7 +458,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
                 self.revisionNoteEdit.text,
             )
             revision = result.get("revision_id", "unknown")
-            self.revisionState.text = "Pushed revision {}".format(revision)
+            self.revisionState.text = f"Pushed revision {revision}"
             self.log.appendPlainText("Exported validated mask to " + str(export_path))
             return result
 
@@ -476,7 +471,7 @@ class GrayMatterSlicerWidget(ScriptedLoadableModuleWidget):
         latest = status.get("latest") or {}
         source = latest.get("source")
         created = latest.get("created_at")
-        detail = "Revision {}".format(current)
+        detail = f"Revision {current}"
         if source:
             detail += " from " + str(source)
         if created:

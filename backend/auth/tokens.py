@@ -121,8 +121,8 @@ def token_payload_from_claims(payload: dict) -> TokenPayload | None:
 __all__ = [
     "TokenPayload",
     "create_access_token",
-    "create_slicer_integration_token",
     "create_password_reset_token",
+    "create_slicer_integration_token",
     "decode_token",
     "get_token_payload",
     "hash_reset_token",

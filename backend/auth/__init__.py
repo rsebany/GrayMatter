@@ -58,19 +58,14 @@ from auth.tokens import (
 # ---------------------------------------------------------------------------
 
 __all__ = [
-    # config
     "ACCESS_TOKEN_EXPIRE_MINUTES",
     "ALGORITHM",
     "RESET_TOKEN_EXPIRE_HOURS",
-    # roles / deps
     "ROLES",
     "SECRET_KEY",
     "SLICER_TOKEN_EXPIRE_MINUTES",
-    # tokens
     "TokenPayload",
-    # identifiers / passwords
     "_generate_medical_id",
-    # data scope
     "assert_patient_access",
     "bearer_scheme",
     "create_access_token",
@@ -80,9 +75,9 @@ __all__ = [
     "get_current_user",
     "get_current_user_from_bearer_or_query",
     "get_current_user_optional",
-    "get_slicer_integration_user",
     "get_owned_patient_or_404",
     "get_owned_study_or_404",
+    "get_slicer_integration_user",
     "get_token_payload",
     "has_permission",
     "hash_password",

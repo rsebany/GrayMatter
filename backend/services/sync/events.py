@@ -81,7 +81,7 @@ class RedisStudyEventHub:
                 self._channel(study_id),
                 json.dumps(event, separators=(",", ":"), allow_nan=False),
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 - Redis clients expose backend-specific errors
             logger.warning(
                 "Redis event publish unavailable; using process-local fallback.",
                 exc_info=False,
@@ -101,7 +101,7 @@ class RedisStudyEventHub:
                     continue
                 if isinstance(event, dict):
                     yield event
-        except Exception:
+        except Exception:  # noqa: BLE001 - fall back on any Redis transport failure
             logger.warning(
                 "Redis event subscription unavailable; using process-local fallback.",
                 exc_info=False,
@@ -111,8 +111,8 @@ class RedisStudyEventHub:
         finally:
             try:
                 await pubsub.aclose()
-            except Exception:
-                pass
+            except Exception:  # noqa: BLE001 - cleanup must not mask stream failure
+                logger.warning("Could not close Redis event subscription.", exc_info=True)
 
 
 def create_study_event_hub():
