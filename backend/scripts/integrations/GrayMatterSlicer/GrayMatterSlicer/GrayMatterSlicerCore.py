@@ -14,7 +14,7 @@ import shutil
 import math
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, Iterable, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple
 
 import numpy as np
 
