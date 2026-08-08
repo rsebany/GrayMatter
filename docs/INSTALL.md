@@ -26,7 +26,9 @@ Open http://localhost — `researcher@graymatter.local` / `researcher12345`
 | API | http://localhost/api |
 | Health | http://localhost/api/health (`weights_exists: true` when `model.pt` is present) |
 
-MRI data under `dataset/` is **not** required to run the UI. See [dataset/README.md](../dataset/README.md) only for training/OOF.
+MRI data under `dataset/` is **not** required to run the UI. See the
+[local dataset guide](../ai/datasets/templates/dataset_README.md) only for
+training/OOF.
 
 ## Environment
 

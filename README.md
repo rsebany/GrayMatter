@@ -1,10 +1,24 @@
 # GRAYMATTER
 
-Open platform for hippocampal subregion segmentation. Production default: **Coordinate Attention** (`skip_mode: "coord_only"`).
+Open platform for left/right hippocampus segmentation. The production checkpoint uses the
+**Lightweight Hybrid Attention U-Net** with coordinate and inter-slice attention
+(`skip_mode: "full"`).
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue)
 ![MONAI](https://img.shields.io/badge/MONAI-1.4.0-007bff)
+
+## Features
+
+- DICOM and NIfTI MRI upload with MONAI-based attention segmentation.
+- Re-analysis from either viewer with a selectable architecture; the production
+  Lightweight Hybrid Attention U-Net is always registered, while additional
+  models appear only when their local checkpoints are installed.
+- Axial, coronal, and sagittal 2D review with left/right hippocampus overlays.
+- Interactive 3D reconstruction plus immersive WebXR review.
+- Total and left/right segmentation volumes reported in cm³ in the 2D and 3D
+  viewers. WebXR uses the practitioner's display-unit preference.
+- Optional 3D Slicer correction workflow with immutable revisions and live web updates.
 
 ## Quick start
 
@@ -31,13 +45,27 @@ mkdir -p ai/checkpoints
 docker compose up --build -d
 ```
 
+The release tag is historical: its production checkpoint requires
+`skip_mode: "full"` as configured in `ai/configs/hybrid_attention_v1.json`.
+
 Open **http://localhost** — login `researcher@graymatter.local` / `researcher12345` (local seed from `.env.example` only).
 
 Check inference weights: http://localhost/api/health should show `weights_exists: true`.
 
-MRI dataset is **not** required to run the app (upload volumes in the UI). For training / OOF only, see [dataset/README.md](dataset/README.md).
+MRI dataset is **not** required to run the app (upload volumes in the UI). For
+training / OOF only, see the
+[local dataset guide](ai/datasets/templates/dataset_README.md).
 
-More detail: [docs/INSTALL.md](docs/INSTALL.md).
+Optional scaling and security variables, ports, and logs are documented in
+[docs/INSTALL.md](docs/INSTALL.md).
+
+## Main routes
+
+- `/dashboard` — study worklist and recent results.
+- `/upload-dicom` — DICOM or NIfTI upload (`/upload` redirects here).
+- `/view2d?studyId=ST-...` — multiplanar slice and overlay review.
+- `/view3d?studyId=ST-...` — 3D reconstruction and live Slicer synchronization.
+- `/xr`, `/xr/vr`, and `/xr/ar` — WebXR entry points (`/webxr` maps to AR).
 
 ## 3D Slicer setup
 
@@ -66,7 +94,7 @@ immutable revision, updates the active mask, recalculates metrics, regenerates
 GLB/STL meshes, and publishes live events. An open View 3D page shows a success
 toast and refreshes its mesh, metrics, sync status, and revision history without
 a page reload. This is a live confirmation, not a persistent notification-center
-entry.
+entry. Live SSE refresh is limited to an open View 3D page.
 
 On Windows, select **Remember me** before logging in to store the one-week
 session token in Windows Credential Manager; the password is never stored.
@@ -81,7 +109,7 @@ Full setup, CLI usage, troubleshooting, and security notes:
 ai/           # models, training, inference, evaluation, configs, notebooks
 backend/      # FastAPI
 frontend/     # Next.js + Three.js / WebXR
-dataset/      # local data only (not in git) — see dataset/README.md
+dataset/      # local data only (not in git) — see the local dataset guide
 docker/       # nginx
 docs/         # INSTALL, SLICER, REPRODUCIBILITY
 ```
@@ -91,7 +119,7 @@ docs/         # INSTALL, SLICER, REPRODUCIBILITY
 - [docs/INSTALL.md](docs/INSTALL.md) — env, ports, logs
 - [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) — training, OOF, paper pins
 - [docs/SLICER.md](docs/SLICER.md) — optional 3D Slicer notes
-- [dataset/README.md](dataset/README.md) — local dataset prep (not for demo)
+- [Local dataset guide](ai/datasets/templates/dataset_README.md) — training data prep (not for demo)
 
 ## Credits
 
@@ -103,6 +131,9 @@ Full third-party notices: [NOTICE](NOTICE).
 
 ## License
 
-Software and the production checkpoint in this repository are **Apache License 2.0** — see [LICENSE](LICENSE) and the [v1.0.0-coord-attention](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) release.
+Software in this repository is **Apache License 2.0** — see [LICENSE](LICENSE).
+The separately distributed production checkpoint is also Apache-2.0; see the
+[v1.0.0-coord-attention](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention)
+release.
 
 **Carve-out:** `frontend/public/xr/backgrounds/hospital/` is **CC-BY-NC-4.0** (not Apache). Credit required; no commercial use of that asset. See [NOTICE](NOTICE) and [license.txt](frontend/public/xr/backgrounds/hospital/license.txt).

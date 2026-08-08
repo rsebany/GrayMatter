@@ -62,6 +62,8 @@ python ai/datasets/prepare_dataset.py --clean
 python ai/datasets/create_folds.py
 ```
 
-Layout after prep: `dataset/raw/`, `dataset/processed/images|labels/`, `dataset/manifests/foldN.json` (subject-level 5-fold splits). See [dataset/README.md](../dataset/README.md).
+Layout after prep: `dataset/raw/`, `dataset/processed/images|labels/`,
+`dataset/manifests/foldN.json` (subject-level 5-fold splits). See the
+[local dataset guide](../ai/datasets/templates/dataset_README.md).
 
 Install notes: [INSTALL.md](INSTALL.md).

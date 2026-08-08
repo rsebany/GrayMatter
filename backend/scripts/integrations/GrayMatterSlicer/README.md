@@ -35,7 +35,8 @@ After a successful push, GrayMatter stores a new immutable revision, activates
 the corrected mask, recalculates metrics, regenerates GLB/STL meshes, and sends
 live events. An open View 3D page displays a success toast and refreshes the
 mesh, metrics, sync status, and revision history. The toast is not a persistent
-notification-center record.
+notification-center record. Live SSE refresh is limited to an open View 3D
+page.
 
 The module supports:
 
