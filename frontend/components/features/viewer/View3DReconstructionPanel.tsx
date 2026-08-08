@@ -20,7 +20,6 @@ import {
   defaultWindowPresetKey,
   windowPresetsForModality,
 } from "@/lib/viewer/window-presets";
-import { useVolumeDisplayUnit } from "@/hooks/settings";
 import {
   segmentationSyncKeys,
   useStudiesList,
@@ -317,10 +316,9 @@ export function View3DReconstructionPanel() {
     setClassVisibility(BRAIN_DEFAULT_CLASS_VISIBILITY);
   }, [studyId]);
 
-  const volumeDisplayUnit = useVolumeDisplayUnit();
   const metricGroups = useMemo(
-    () => buildSegmentationMetricGroups(metrics, volumeDisplayUnit),
-    [metrics, volumeDisplayUnit],
+    () => buildSegmentationMetricGroups(metrics, "cm"),
+    [metrics],
   );
 
   const resolvedUrl = meshUrl || meshFallback;
