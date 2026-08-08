@@ -29,6 +29,8 @@ type View2DLeftPanelProps = {
   onDenoiseChange: (value: boolean) => void;
   onOrientationChange: (orientation: Orientation) => void;
   onResetSliceIndex: () => void;
+  showImageControls?: boolean;
+  additionalContent?: React.ReactNode;
 };
 
 export function View2DLeftPanel({
@@ -53,6 +55,8 @@ export function View2DLeftPanel({
   onDenoiseChange,
   onOrientationChange,
   onResetSliceIndex,
+  showImageControls = true,
+  additionalContent,
 }: View2DLeftPanelProps) {
   const sliceCount = files?.length ?? 0;
   const vaultSliceCount = serverVolumeDepth > 0 ? serverVolumeDepth : sliceCount;
@@ -154,6 +158,9 @@ export function View2DLeftPanel({
         )}
       </section>
 
+      {additionalContent}
+
+      {showImageControls && (
       <section className="space-y-3 rounded-xl border border-graymatter-border bg-graymatter-card p-3">
         <h3 className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           <Activity className="h-3.5 w-3.5" /> Window
@@ -224,7 +231,9 @@ export function View2DLeftPanel({
           />
         </div>
       </section>
+      )}
 
+      {showImageControls && (
       <section className="space-y-2 rounded-xl border border-graymatter-border bg-graymatter-card p-3">
         <h3 className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           <Layers className="h-3.5 w-3.5" /> Plane
@@ -250,6 +259,7 @@ export function View2DLeftPanel({
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 }

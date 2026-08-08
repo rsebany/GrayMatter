@@ -34,7 +34,6 @@ import {
 } from "@/hooks/viewer";
 import { View2DPanelLeftColumn } from "@/components/features/viewer/view2d/View2DPanelLeftColumn";
 import { View2DPanelRightColumn } from "@/components/features/viewer/view2d/View2DPanelRightColumn";
-import { SegmentationClassLegend } from "@/components/features/viewer/ui/SegmentationClassLegend";
 import { Switch } from "@/components/ui/switch";
 import { SlicerSyncPanel } from "@/components/features/viewer/SlicerSyncPanel";
 
@@ -435,6 +434,16 @@ export function View3DReconstructionPanel() {
           onOrientationChange={setOrientation}
           onResetSliceIndex={() => {}}
           onFolderChange={() => {}}
+          showImageControls={false}
+          additionalContent={
+            hasSegmentationMesh && showAiMesh ? (
+              <ClassVisibilityToggles
+                visibility={classVisibility}
+                onToggle={toggleClass}
+                shellLabel="Brain"
+              />
+            ) : null
+          }
         />
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 overflow-hidden">
@@ -524,17 +533,6 @@ export function View3DReconstructionPanel() {
               </div>
             </div>
           </div>
-          {hasSegmentationMesh && showAiMesh && (
-            <SegmentationClassLegend compact palette="mesh3d" className="max-w-xl" />
-          )}
-          {hasSegmentationMesh && showAiMesh && (
-            <ClassVisibilityToggles
-              visibility={classVisibility}
-              onToggle={toggleClass}
-              shellLabel="Brain"
-            />
-          )}
-
           {studyId && (
             <SlicerSyncPanel studyId={studyId} connected={syncConnected} />
           )}
@@ -601,30 +599,32 @@ function ClassVisibilityToggles({
   const metaMap = CLASS_TOGGLE_META(shellLabel);
   const order: MeshClassKey[] = ["left", "right", "brain_shell"];
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-2 py-1.5">
-      <span className="shrink-0 pr-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+    <section className="space-y-2 rounded-xl border border-graymatter-border bg-graymatter-card p-3">
+      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         Show classes
-      </span>
-      {order.map((key) => {
-        const meta = metaMap[key];
-        const active = visibility[key];
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onToggle(key)}
-            aria-pressed={active}
-            className={`flex items-center gap-2 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
-              active
-                ? "border-border bg-background text-foreground"
-                : "border-border/60 bg-muted/40 text-muted-foreground line-through opacity-70 hover:opacity-100"
-            }`}
-          >
-            <span className={`h-2 w-2 shrink-0 rounded-full ${meta.swatch}`} />
-            {meta.label}
-          </button>
-        );
-      })}
-    </div>
+      </h3>
+      <div className="flex flex-col gap-1.5">
+        {order.map((key) => {
+          const meta = metaMap[key];
+          const active = visibility[key];
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onToggle(key)}
+              aria-pressed={active}
+              className={`flex w-full items-center gap-2 rounded-md border px-2.5 py-2 text-left text-[11px] font-medium transition-colors ${
+                active
+                  ? "border-border bg-background text-foreground"
+                  : "border-border/60 bg-muted/40 text-muted-foreground line-through opacity-70 hover:opacity-100"
+              }`}
+            >
+              <span className={`h-2 w-2 shrink-0 rounded-full ${meta.swatch}`} />
+              {meta.label}
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }

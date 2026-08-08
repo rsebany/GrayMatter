@@ -7,7 +7,7 @@ export const WORKFLOW_STEPS = [
   {
     step: "02",
     title: "AI Segmentation",
-    label: "3D Residual U-Net inference for hippocampus quantification.",
+    label: "3D Attention Mechanisms inference for hippocampus quantification.",
   },
   {
     step: "03",
