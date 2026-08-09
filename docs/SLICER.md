@@ -45,9 +45,6 @@ For remote Slicer on another PC, use the LAN API URL from `GET /api/health` → 
    `C:\Users\<you>\Desktop\GrayMatterSlicerData`; do not use the module source
    directory or append the study ID.
 
-Select **Remember me** before login to store the normal one-week session token
-in Windows Credential Manager. The password and short-lived write tokens are
-never stored. Use **Forget saved login** to remove the saved session.
 
 ## Label semantics
 
@@ -72,14 +69,6 @@ python scripts/integrations/slicer_connect.py `
   --out-dir ./slicer_workspace/ST-abc12345
 ```
 
-Creates:
-
-- `dicom/` — extracted DICOM series (if stored on server)
-- `volume.nii.gz` (or `.nii`) — NIfTI volume when the study has no DICOM on disk
-- `ai_mask.npy` — current AI mask
-- `geometry.json` — native shape + spacing
-- `mesh_urls.json` — GLB + STL links
-- `slicer_import_manifest.json` — import metadata for Slicer
 
 For NIfTI-only studies, `pull` downloads the volume via `GET /studies/{id}/nifti` and records `nifti_path` in the manifest. Geometry and mask still align via `geometry.json`.
 

@@ -4,7 +4,7 @@ import {
   formatSegmentationVolumeNumber,
   formatSegmentationVolumeUnitLabel,
 } from "@/lib/metrics/format-segmentation-volume";
-import { computeIldBarFillPercent } from "@/lib/metrics/ild-volume-bar";
+import { computeTotalHippocampusBarFillPercent } from "@/lib/metrics/hippocampus-volume-bar";
 
 type Props = {
   volumeTotalMm3: number;
@@ -23,7 +23,7 @@ export function StudyHippocampusBar({
   }
 
   const volumeMm3 = Math.max(0, volumeTotalMm3);
-  const fillPercent = computeIldBarFillPercent(volumeMm3);
+  const fillPercent = computeTotalHippocampusBarFillPercent(volumeMm3);
 
   return (
     <div className="flex items-center gap-3">
