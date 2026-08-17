@@ -12,9 +12,9 @@ import {
   totalHippocampusMl,
 } from "@/lib/metrics/hippocampus-metrics";
 import {
-  computeIldBarFillPercent,
-  computeIldBarFillPercentFromMl,
-} from "@/lib/metrics/ild-volume-bar";
+  computeHemisphereHippocampusBarFillPercent,
+  computeTotalHippocampusBarFillPercent,
+} from "@/lib/metrics/hippocampus-volume-bar";
 import type {
   MetricProgressGroup,
   MetricProgressItem,
@@ -48,7 +48,7 @@ export function buildSegmentationMetricGroups(
         burdenFraction: burden,
       }),
       color: "bg-sky-500",
-      progress: computeIldBarFillPercent(metrics.volume_total_mm3 ?? 0),
+      progress: computeTotalHippocampusBarFillPercent(metrics.volume_total_mm3 ?? 0),
     },
   ];
 
@@ -95,7 +95,7 @@ export function buildSegmentationMetricGroups(
         burdenFraction: burdenFrac,
       }),
       color: c.color,
-      progress: computeIldBarFillPercentFromMl(volumeMl ?? 0),
+      progress: computeHemisphereHippocampusBarFillPercent(volumeMl ?? 0),
     });
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 type Props = {
+  title?: string;
   /** e.g. `Registered Studies` or `Registered Patients` */
   totalLabel: string;
   count: number;
@@ -8,15 +9,18 @@ type Props = {
 };
 
 export function RegistryOverviewHeading({
+  title = "Registry overview",
   totalLabel,
   count,
   isLoading,
 }: Props) {
   return (
     <div className="min-w-0">
-      <h2 className="text-lg font-bold text-foreground sm:text-xl">Registry Overview</h2>
-      <p className="break-words text-sm text-muted-foreground">
-        {isLoading ? "Loading..." : `Total: ${count} ${totalLabel}`}
+      <h1 className="text-[28px] font-medium leading-tight text-[var(--text-primary)]">
+        {title}
+      </h1>
+      <p className="mt-1 break-words text-[13px] text-[var(--text-muted)]">
+        {isLoading ? "Loading..." : `Total: ${count} ${totalLabel.toLowerCase()}`}
       </p>
     </div>
   );

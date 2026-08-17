@@ -123,6 +123,21 @@ def _patch_segmentations_stl_url_column() -> None:
         conn.commit()
 
 
+def _migrate_patient_external_id_prefix() -> None:
+    """Replace the legacy ILD patient-ID prefix while preserving each suffix."""
+    with engine.connect() as conn:
+        conn.execute(
+            text(
+                """
+                UPDATE patients
+                SET external_id = 'PID-' || SUBSTRING(external_id FROM 5)
+                WHERE external_id LIKE 'ILD-%'
+                """
+            )
+        )
+        conn.commit()
+
+
 def init_db() -> None:
     """Create tables defined by ORM models."""
     _ensure_database_exists()
@@ -130,6 +145,7 @@ def init_db() -> None:
     _patch_patients_user_id_column()
     _patch_segmentations_inference_architecture_column()
     _patch_segmentations_stl_url_column()
+    _migrate_patient_external_id_prefix()
 
 
 # ---------------------------------------------------------------------------

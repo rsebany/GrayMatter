@@ -1,0 +1,40 @@
+{
+  "study_id": "ST-c9c91419",
+  "api_base": "http://localhost/api",
+  "workspace_version": 1,
+  "imaging_source": "nifti",
+  "dicom_dir": "C:\\Users\\shifttech\\Desktop\\GrayMatter\\backend\\scripts\\integrations\\GrayMatterSlicer\\GrayMatterSlicer\\ST-c9c91419\\dicom",
+  "nifti_path": "C:\\Users\\shifttech\\Desktop\\GrayMatter\\backend\\scripts\\integrations\\GrayMatterSlicer\\GrayMatterSlicer\\ST-c9c91419\\study_ST-c9c91419.nii",
+  "imaging_note": "DICOM unavailable.",
+  "geometry_path": "C:\\Users\\shifttech\\Desktop\\GrayMatter\\backend\\scripts\\integrations\\GrayMatterSlicer\\GrayMatterSlicer\\ST-c9c91419\\geometry.json",
+  "geometry": {
+    "depth": 34,
+    "height": 56,
+    "width": 28,
+    "spacing_z_mm": 1.0,
+    "spacing_y_mm": 1.0,
+    "spacing_x_mm": 1.0
+  },
+  "mask_path": "C:\\Users\\shifttech\\Desktop\\GrayMatter\\backend\\scripts\\integrations\\GrayMatterSlicer\\GrayMatterSlicer\\ST-c9c91419\\ai_mask.npy",
+  "mesh_urls_path": "C:\\Users\\shifttech\\Desktop\\GrayMatter\\backend\\scripts\\integrations\\GrayMatterSlicer\\GrayMatterSlicer\\ST-c9c91419\\mesh_urls.json",
+  "mesh_urls": {
+    "mesh_url": "/static/meshes/ST-c9c91419_hippocampus.glb",
+    "stl_url": "/static/meshes/ST-c9c91419_hippocampus.stl"
+  },
+  "labels": {
+    "background": 0,
+    "left": 1,
+    "right": 2
+  },
+  "orientation": "zyx",
+  "shape_zyx": [
+    34,
+    56,
+    28
+  ],
+  "spacing_zyx_mm": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

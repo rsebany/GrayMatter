@@ -74,8 +74,23 @@ def main() -> int:
     )
 
     client = ApiClient(args.api_base, token=token, timeout_s=180)
+    token_response = client.post_json(
+        "/auth/slicer-token",
+        {"study_id": args.study_id},
+    )
+    integration_token = str(token_response.get("access_token") or "").strip()
+    if not integration_token:
+        raise RuntimeError("Slicer token response did not include an access token.")
+    scoped_client = ApiClient(
+        args.api_base,
+        token=integration_token,
+        timeout_s=180,
+    )
     t0 = time.perf_counter()
-    result = client.post_json(f"/studies/{args.study_id}/segmentation-revisions", payload)
+    result = scoped_client.post_json(
+        f"/studies/{args.study_id}/segmentation-revisions",
+        payload,
+    )
     elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
     print(f"OK in {elapsed_ms} ms")
     print(json.dumps(result, indent=2))

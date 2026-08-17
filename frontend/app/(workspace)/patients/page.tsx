@@ -3,6 +3,8 @@
  */
 "use client";
 
+import { Suspense } from "react";
+
 import { WorkspaceShell } from "@/components/layout";
 import { PatientsPageContent } from "@/components/features/patients";
 
@@ -10,11 +12,13 @@ export default function PatientsPage() {
   return (
     <WorkspaceShell
       activePage="patients"
-      title="Patient Registry"
+      title="Patients Overview"
       breadcrumb="Dashboard / Patients"
-      mainClassName="flex flex-1 flex-col p-3 sm:p-4 md:p-6"
+      mainClassName="flex min-w-0 flex-1 flex-col p-6"
     >
-      <PatientsPageContent />
+      <Suspense>
+        <PatientsPageContent />
+      </Suspense>
     </WorkspaceShell>
   );
 }

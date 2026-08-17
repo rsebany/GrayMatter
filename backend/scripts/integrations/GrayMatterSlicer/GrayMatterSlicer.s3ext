@@ -1,0 +1,14 @@
+scm git
+scmurl https://github.com/shifttech/GrayMatter.git
+scmrevision main
+scmpath backend/scripts/integrations/GrayMatterSlicer
+depends NA
+build_subdirectory .
+homepage https://github.com/shifttech/GrayMatter
+category Informatics
+iconurl
+status Beta
+description GrayMatter study and hippocampus segmentation round-trip for 3D Slicer.
+contributors GrayMatter contributors
+screenshoturls
+enabled 1

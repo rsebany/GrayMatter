@@ -1,4 +1,15 @@
 services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - graymatter-internal
+
   postgres:
     image: postgres:16-alpine
     environment:
@@ -27,12 +38,18 @@ services:
       GRAYMATTER_CHECKPOINT: ${GRAYMATTER_CHECKPOINT:-/app/ai/checkpoints/model.pt}
       GRAYMATTER_JWT_SECRET: ${GRAYMATTER_JWT_SECRET:-change-me}
       JWT_SECRET: ${GRAYMATTER_JWT_SECRET:-change-me}
+      GRAYMATTER_EVENT_BACKEND: ${GRAYMATTER_EVENT_BACKEND:-memory}
+      GRAYMATTER_REDIS_URL: ${GRAYMATTER_REDIS_URL:-redis://redis:6379/0}
+      GRAYMATTER_SEGMENTATION_REVISION_RETENTION: ${GRAYMATTER_SEGMENTATION_REVISION_RETENTION:-100}
+      GRAYMATTER_SLICER_TOKEN_TTL_MINUTES: ${GRAYMATTER_SLICER_TOKEN_TTL_MINUTES:-15}
     volumes:
       - ./backend:/app
       - ./ai:/app/ai:ro
       - ./ai/checkpoints:/app/ai/checkpoints:ro
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

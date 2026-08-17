@@ -160,7 +160,17 @@ def _run_model_on_roi(
     model = build_model(config).to(device)
     checkpoint = torch.load(weights_path, map_location=device, weights_only=False)
     state_dict = checkpoint.get("model_state_dict", checkpoint.get("state_dict", checkpoint))
-    model.load_state_dict(state_dict, strict=False)
+    load_result = model.load_state_dict(state_dict, strict=False)
+    if load_result.missing_keys or load_result.unexpected_keys:
+        raise RuntimeError(
+            "Checkpoint does not match model architecture for "
+            f"skip_mode={config.skip_mode!r} (weights={weights_path}): "
+            f"{len(load_result.missing_keys)} missing key(s), "
+            f"{len(load_result.unexpected_keys)} unexpected key(s). "
+            "Predictions from a partially-loaded model are unreliable; "
+            "fix ai/configs/*.json skip_mode to match the checkpoint "
+            "instead of silently dropping weights."
+        )
     model.eval()
 
     return predict_volume_numpy(model, image, config, device)

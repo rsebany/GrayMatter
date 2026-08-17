@@ -26,6 +26,8 @@ type Props = {
   onDenoiseChange: (value: boolean) => void;
   onOrientationChange: (orientation: "axial" | "coronal" | "sagittal") => void;
   onResetSliceIndex: () => void;
+  showImageControls?: boolean;
+  additionalContent?: React.ReactNode;
 };
 
 export function View2DPanelLeftColumn({
@@ -50,6 +52,8 @@ export function View2DPanelLeftColumn({
   onDenoiseChange,
   onOrientationChange,
   onResetSliceIndex,
+  showImageControls = true,
+  additionalContent,
 }: Props) {
   const [leftPanelOpen, setLeftPanelOpen] = useState(true);
 
@@ -80,6 +84,8 @@ export function View2DPanelLeftColumn({
               onDenoiseChange={onDenoiseChange}
               onOrientationChange={onOrientationChange}
               onResetSliceIndex={onResetSliceIndex}
+              showImageControls={showImageControls}
+              additionalContent={additionalContent}
             />
           </div>
           <button

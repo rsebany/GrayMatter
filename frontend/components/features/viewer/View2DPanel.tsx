@@ -5,7 +5,6 @@ import { useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { studyService, type DicomVolumeShape } from "@/services/study";
-import { useVolumeDisplayUnit } from "@/hooks/settings";
 import {
   useDicomLoader,
   useMaskProcessor,
@@ -164,10 +163,9 @@ export function View2DPanel() {
       .catch((err) => setMaskLoadError(String(err?.message ?? err)));
   }, [studyId, maskReloadToken]);
 
-  const volumeDisplayUnit = useVolumeDisplayUnit();
   const metricGroups = useMemo(
-    () => buildSegmentationMetricGroups(metrics, volumeDisplayUnit),
-    [metrics, volumeDisplayUnit],
+    () => buildSegmentationMetricGroups(metrics, "cm"),
+    [metrics],
   );
 
   const hasVolume = Boolean(

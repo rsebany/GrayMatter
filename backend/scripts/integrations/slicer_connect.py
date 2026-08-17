@@ -39,7 +39,19 @@ def push_mask_revision(
     source: str = "slicer_bridge",
 ) -> dict[str, Any]:
     payload = build_revision_payload(mask, spacing, source=source, revision_note=note)
-    return client.post_json(f"/studies/{study_id}/segmentation-revisions", payload)
+    token_response = client.post_json("/auth/slicer-token", {"study_id": study_id})
+    integration_token = str(token_response.get("access_token") or "").strip()
+    if not integration_token:
+        raise RuntimeError("Slicer token response did not include an access token.")
+    scoped_client = ApiClient(
+        client.api_base,
+        token=integration_token,
+        use_urllib=client.use_urllib,
+        timeout_s=client.timeout_s,
+    )
+    return scoped_client.post_json(
+        f"/studies/{study_id}/segmentation-revisions", payload
+    )
 
 
 def cmd_pull(args: argparse.Namespace) -> int:

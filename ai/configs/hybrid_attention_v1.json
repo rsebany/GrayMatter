@@ -35,7 +35,7 @@
   "continue_on_fold_error": true,
   "class_voxel_counts": [15469002, 445938, 410816],
   "model_channels": [32, 64, 128, 256],
-  "skip_mode": "coord_only",
-  "model_version": "v1.0.0-coord-attention",
+  "skip_mode": "full",
+  "model_version": "v1.0.0-full-cisa",
   "production_fold": 4
 }

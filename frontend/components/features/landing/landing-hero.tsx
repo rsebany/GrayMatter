@@ -12,7 +12,7 @@ export function LandingHero() {
         className="mb-6 text-5xl font-extrabold text-white md:text-6xl"
       >
         Advancing Hippocampus MRI through{" "}
-        <span className="text-sky-400">Residual U-Net</span>
+        <span className="text-sky-400">Attention Mechanisms</span>
       </motion.h1>
       <p className="mb-10 text-lg text-slate-400">
         A research-driven pipeline integrating MONAI segmentation with immersive

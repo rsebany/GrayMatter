@@ -1,4 +1,10 @@
 export { PatientCombobox } from "./PatientComboBox";
-export { PatientQuickEditor } from "./PatientQuickEditor";
+export { MRISeriesViewer } from "./MRISeriesViewer";
+export { PatientDetailPageContent } from "./PatientDetailPageContent";
+export { PatientHeader } from "./PatientHeader";
+export { PatientList } from "./PatientList";
 export { PatientTable } from "./PatientTable";
 export { PatientsPageContent } from "./PatientsPageContent";
+export { QuickRegistry } from "./QuickRegistry";
+export { SegmentationStatistics } from "./SegmentationStatistics";
+export { SeriesFilmstrip } from "./SeriesFilmstrip";

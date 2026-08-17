@@ -36,7 +36,8 @@ export function formatSegmentationVolumeNumber(
   unit: VolumeDisplayUnit,
   input: SegmentationVolumeInput,
 ): string {
-  const digits = input.maximumFractionDigits ?? (unit === "percent" ? 2 : 0);
+  const defaultDigits = unit === "percent" ? 2 : unit === "cm" ? 3 : unit === "ml" ? 2 : 0;
+  const digits = input.maximumFractionDigits ?? defaultDigits;
 
   if (unit === "percent") {
     const burden = input.burdenFraction;
