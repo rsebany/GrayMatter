@@ -187,7 +187,7 @@ app.include_router(segmentation_sync_router)
 @app.get("/health")
 async def health_check() -> dict:
     """System status, AI model metadata, XR and Slicer integration hints."""
-    ai_model_name = "Lightweight Hybrid Attention U-Net (fold4, Dice 0.867)"
+    ai_model_name = "Hybrid Attention U-Net (fold4, Dice 0.867)"
     config_path = BACKEND_AI_ROOT / "configs" / "hybrid_attention_v1.json"
     if config_path.is_file():
         try:

@@ -1,4 +1,4 @@
-"""Runtime settings for ai/inference without the removed ai/service package.
+"""Runtime settings for the inference pipeline.
 
 Reads environment variables used by the Docker/backend stack.
 """

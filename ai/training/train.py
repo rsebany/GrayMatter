@@ -22,7 +22,6 @@ VARIANT_CONFIGS: dict[str, tuple[str, str]] = {
     "plain_unet": ("plain_unet_v1.json", "ai/results/ablations/plain_unet"),
     "coord_attention": ("coord_attention_v1.json", "ai/results/ablations/coord_attention"),
     "full_cisa": ("hybrid_attention_v1.json", "ai/results/ablations/full_cisa"),
-    "attention_gate": ("attention_unet_v1.json", "ai/results/ablations/attention_unet"),
 }
 
 
@@ -83,7 +82,7 @@ def set_seed(seed: int) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Train Lightweight Hybrid Attention U-Net")
+    parser = argparse.ArgumentParser(description="Train Hybrid Attention U-Net")
     parser.add_argument("--config", default=None, help="Path to experiment JSON config")
     parser.add_argument(
         "--variant",

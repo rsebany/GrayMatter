@@ -1,4 +1,4 @@
-"""MONAI preprocessing transforms aligned with notebook training."""
+"""MONAI preprocessing transforms for training and inference."""
 
 from __future__ import annotations
 

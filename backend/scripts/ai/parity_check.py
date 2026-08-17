@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare backend inference mask vs a notebook / reference mask."""
+"""Compare backend inference mask vs a reference mask."""
 from __future__ import annotations
 
 import argparse
@@ -25,14 +25,14 @@ from common.mask_compare import (
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Parity check: backend inference mask vs notebook reference mask."
+        description="Parity check: backend inference mask vs reference mask."
     )
     parser.add_argument("--dicom-dir", required=True, help="Directory containing DICOM slices.")
     parser.add_argument("--weights", required=True, help="Path to .pth model weights.")
     parser.add_argument(
         "--reference-mask",
         required=True,
-        help="Path to notebook reference mask (.npy or .npz).",
+        help="Path to reference mask (.npy or .npz).",
     )
     parser.add_argument(
         "--out-json",

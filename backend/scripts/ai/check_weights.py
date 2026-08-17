@@ -18,7 +18,7 @@ _AI_ROOT = PLATFORM_ROOT / "ai"
 
 def main() -> int:
     """
-    Sanity-check for the production ``LightweightHybridAttentionUNet3D`` checkpoint.
+    Sanity-check for the production ``HybridAttentionUNet3D`` checkpoint.
 
     - Verifies weights file exists (env ``GRAYMATTER_CHECKPOINT`` or
       ``ai/checkpoints/model.pt``).

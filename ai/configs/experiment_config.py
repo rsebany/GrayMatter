@@ -1,4 +1,4 @@
-"""Experiment configuration for Lightweight Hybrid Attention U-Net."""
+"""Experiment configuration for Hybrid Attention U-Net."""
 
 from __future__ import annotations
 

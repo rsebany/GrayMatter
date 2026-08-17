@@ -99,7 +99,7 @@ def resolve_checkpoint(results_dir: Path, fold_idx: int) -> Path | None:
 
 
 def remap_ablation_state_dict(state_dict: dict) -> dict:
-    """Map compact notebook module names (e1.b, s1.bd, ...) to package model names."""
+    """Map compact state-dict keys to package model names."""
     import re
 
     patterns = (

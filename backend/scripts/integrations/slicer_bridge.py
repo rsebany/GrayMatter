@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Lightweight 3D Slicer bridge client (backward-compatible wrapper).
+3D Slicer bridge client (backward-compatible wrapper).
 
 Prefer ``slicer_connect.py`` for pull/push/watch/status. This script delegates push/watch
 to ``slicer_connect`` with JWT auth via ``BEARER_TOKEN`` or ``--token``.
