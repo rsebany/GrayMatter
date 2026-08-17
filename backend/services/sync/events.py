@@ -111,7 +111,7 @@ class RedisStudyEventHub:
         finally:
             try:
                 await pubsub.aclose()
-            except Exception:  # noqa: BLE001 - cleanup must not mask stream failure
+            except Exception:
                 logger.warning("Could not close Redis event subscription.", exc_info=True)
 
 

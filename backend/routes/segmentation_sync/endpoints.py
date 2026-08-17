@@ -407,7 +407,7 @@ async def _process_revision(
                     revision.revision_id,
                     "Revision processing failed.",
                 )
-        except Exception:  # noqa: BLE001 - preserve the original processing failure
+        except Exception:
             logger.warning(
                 "Could not mark failed segmentation revision %s for study %s.",
                 revision.revision_id,
