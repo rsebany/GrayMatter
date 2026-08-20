@@ -1,4 +1,4 @@
-"""JWT access tokens and opaque password-reset tokens."""
+"""JWT access/refresh tokens and opaque password-reset tokens."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from pydantic import BaseModel, ValidationError
 from auth.config import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     ALGORITHM,
+    REFRESH_TOKEN_EXPIRE_MINUTES,
     SECRET_KEY,
     SLICER_TOKEN_EXPIRE_MINUTES,
 )
@@ -29,6 +30,15 @@ def create_access_token(data: dict, *, expires_minutes: int | None = None) -> st
         minutes=expires_minutes or ACCESS_TOKEN_EXPIRE_MINUTES
     )
     to_encode.update({"exp": expire, "token_type": to_encode.get("token_type", "access")})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def create_refresh_token(data: dict, *, expires_minutes: int | None = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=expires_minutes or REFRESH_TOKEN_EXPIRE_MINUTES
+    )
+    to_encode.update({"exp": expire, "token_type": "refresh"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -101,7 +111,7 @@ def get_token_payload(
 def token_payload_from_claims(payload: dict) -> TokenPayload | None:
     if not payload.get("sub") or not payload.get("email"):
         return None
-    if payload.get("token_type", "access") not in {"access", "slicer_integration"}:
+    if payload.get("token_type", "access") not in {"access", "refresh", "slicer_integration"}:
         return None
     try:
         return TokenPayload(
@@ -122,6 +132,7 @@ __all__ = [
     "TokenPayload",
     "create_access_token",
     "create_password_reset_token",
+    "create_refresh_token",
     "create_slicer_integration_token",
     "decode_token",
     "get_token_payload",

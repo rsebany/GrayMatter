@@ -1,4 +1,4 @@
-"""Session routes: login, signup, current user profile."""
+"""Session routes: login, signup, current user profile, token refresh."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from models.models import ROLE_RADIOLOGIST, UserORM
 from schemas import (
     AuthResponse,
     LoginRequest,
+    RefreshTokenRequest,
     SignupRequest,
     SlicerTokenRequest,
     SlicerTokenResponse,
@@ -18,9 +19,12 @@ from schemas import (
 from sqlalchemy.orm import Session
 
 from auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     _generate_medical_id,
     create_access_token,
+    create_refresh_token,
     create_slicer_integration_token,
+    decode_token,
     get_current_user,
     get_owned_study_or_404,
     has_permission,
@@ -44,9 +48,12 @@ router = APIRouter()
 
 
 def _auth_response(user: UserORM) -> AuthResponse:
+    data = token_data(user)
     return AuthResponse(
-        access_token=create_access_token(token_data(user)),
+        access_token=create_access_token(data),
+        refresh_token=create_refresh_token(data),
         token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=user_to_response(user),
     )
 
@@ -150,3 +157,32 @@ def slicer_token(
         study_id=body.study_id,
         expires_at=expires_at,
     )
+
+
+# ---------------------------------------------------------------------------
+# Token refresh
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/refresh",
+    response_model=AuthResponse,
+    summary="Refresh access token",
+    name="auth_refresh",
+)
+def refresh_token(body: RefreshTokenRequest) -> AuthResponse:
+    """Exchange a valid refresh token for a new access + refresh token pair."""
+    payload = decode_token(body.refresh_token)
+    if not payload or payload.get("token_type") != "refresh":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+    with get_session() as session:
+        user = session.query(UserORM).filter(UserORM.id == int(payload["sub"])).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+    return _auth_response(user)

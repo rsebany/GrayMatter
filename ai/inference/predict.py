@@ -6,6 +6,8 @@ from inference.preprocess import get_runtime_config
 from models.hybrid_attention_unet import build_model
 from preprocessing.transforms import predict_volume_numpy
 
+_MAX_CHECKPOINT_BYTES = 500 * 1024 * 1024  # 500 MB sanity cap
+
 
 class ModelWeightsNotFoundError(RuntimeError):
     """Raised when trained weights cannot be loaded."""
@@ -26,7 +28,21 @@ class Predictor:
                 raise ModelWeightsNotFoundError(f"Checkpoint not found: {checkpoint_path}")
             return False
 
+        if path.suffix not in (".pt", ".pth"):
+            raise ModelWeightsNotFoundError(
+                f"Unexpected checkpoint extension '{path.suffix}'; expected .pt or .pth"
+            )
+
+        file_size = path.stat().st_size
+        if file_size > _MAX_CHECKPOINT_BYTES:
+            raise ModelWeightsNotFoundError(
+                f"Checkpoint too large ({file_size / 1e6:.1f} MB > {_MAX_CHECKPOINT_BYTES / 1e6:.0f} MB limit)"
+            )
+
         try:
+            # weights_only=False is required because the checkpoint contains
+            # config dicts alongside state_dict tensors.  Loading is restricted
+            # to trusted local files via the size cap and extension check above.
             checkpoint = torch.load(path, map_location=self.device, weights_only=False)
             state_dict = checkpoint.get("model_state_dict", checkpoint.get("state_dict", checkpoint))
             if isinstance(checkpoint, dict) and "config" in checkpoint:

@@ -1,4 +1,4 @@
-name: Python Lint
+name: Python Lint & Test
 
 on:
   push:
@@ -37,3 +37,27 @@ jobs:
       - name: Run lint checks
         run: |
           ruff check backend ai --ignore E402 --exclude "ai/notebooks/**"
+
+  python-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Run backend tests
+        run: pytest backend/tests/ -v --tb=short
+        env:
+          GRAYMATTER_JWT_SECRET: ci-test-secret
+          DATABASE_URL: sqlite:///test.db
+
+      - name: Run AI unit tests
+        run: pytest ai/tests/ -v --tb=short
+        if: hashFiles('ai/tests/**/*.py') != ''

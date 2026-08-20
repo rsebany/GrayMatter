@@ -68,8 +68,14 @@ class AdminUpdateUserRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
+    expires_in: int = 1800  # seconds (30 minutes)
     user: UserResponse
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=16, max_length=512)
 
 
 class SlicerTokenRequest(BaseModel):
