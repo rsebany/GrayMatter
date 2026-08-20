@@ -181,19 +181,19 @@ class TestCheckpoint:
 
 class TestPredictor:
     def test_loads_checkpoint(self, dummy_checkpoint: Path) -> None:
-        from predict import Predictor
+        from inference.predict import Predictor
 
         predictor = Predictor(str(dummy_checkpoint), device="cpu", require_weights=True)
         assert predictor.weights_loaded
 
     def test_missing_checkpoint_raises(self, tmp_path: Path) -> None:
-        from predict import Predictor, ModelWeightsNotFoundError
+        from inference.predict import Predictor, ModelWeightsNotFoundError
 
         with pytest.raises(ModelWeightsNotFoundError):
             Predictor(str(tmp_path / "nonexistent.pt"), device="cpu", require_weights=True)
 
     def test_predict_output_shape(self, dummy_checkpoint: Path) -> None:
-        from predict import Predictor
+        from inference.predict import Predictor
 
         predictor = Predictor(str(dummy_checkpoint), device="cpu")
         image = np.random.rand(48, 64, 48).astype(np.float32)
