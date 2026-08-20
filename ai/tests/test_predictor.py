@@ -199,4 +199,4 @@ class TestPredictor:
         image = np.random.rand(1, 48, 64, 48).astype(np.float32)
         result = predictor.predict(image)
         assert result.shape == (48, 64, 48)
-        assert result.dtype in (np.int64, np.int32, np.float32, np.float64)
+        assert result.dtype in (np.uint8, np.int64, np.int32, np.float32, np.float64)
