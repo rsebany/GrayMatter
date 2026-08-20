@@ -13,7 +13,7 @@
 
 ---
 
-GrayMatter is an open-source platform for automated segmentation of hippocampal subregions (left/right) from 3D MRI volumes. It combines a 3D U-Net with **Coordinate Inter-Slice Attention (CISA)** — a novel skip-connection module that uses triaxial coordinate gating to suppress noisy encoder features before fusion with the decoder.
+GrayMatter is an open-source platform for automated segmentation of hippocampal subregions (left/right) from 3D MRI volumes. It combines a 3D U-Net with **Coordinate Inter-Slice Attention (CISA)**, a novel skip-connection module that uses triaxial coordinate gating to suppress noisy encoder features before fusion with the decoder.
 
 The platform ships as a full-stack application: a PyTorch inference backend, a FastAPI server, and a Next.js + WebXR viewer for 3D visualization.
 
@@ -21,7 +21,7 @@ The platform ships as a full-stack application: a PyTorch inference backend, a F
 
 | Variant | CV DSC | OOF DSC | Role |
 |---------|--------|---------|------|
-| **Coordinate Attention** | 0.8605 | 0.8605 | **Production default** — best generalizer |
+| **Coordinate Attention** | 0.8605 | 0.8605 | **Production default**, best generalizer |
 | Full CISA | 0.8616 | 0.8457 | Best cross-validation, worst OOF gap |
 | Plain U-Net | — | 0.8552 | Identity skip baseline |
 
@@ -48,11 +48,11 @@ mkdir -p ai/checkpoints
 docker compose up --build -d
 ```
 
-Open **http://localhost** — login with `researcher@graymatter.local` / `researcher12345`.
+Open **http://localhost**, login with `researcher@graymatter.local` / `researcher12345`.
 
 Verify weights loaded: `GET /api/health` should return `"weights_exists": true`.
 
-MRI dataset is **not** required to run the app — upload volumes directly in the UI.
+MRI dataset is **not** required to run the app; upload volumes directly in the UI.
 
 ## Architecture
 
@@ -66,7 +66,7 @@ The key contribution is the **skip-connection module**, tested in three variants
 | `"coord_only"` | Triaxial coordinate gating only | `coord_attention_v1.json` |
 | `"full"` | Coordinate gating + depthwise inter-slice convolution | `hybrid_attention_v1.json` |
 
-Coordinate Attention (`"coord_only"`) is the production default — it matches Full CISA on CV Dice with zero CV-to-OOF generalization gap.
+Coordinate Attention (`"coord_only"`) is the production default; it matches Full CISA on CV Dice with zero CV-to-OOF generalization gap.
 
 ## Project Structure
 
@@ -96,17 +96,17 @@ GrayMatter/
 
 ## Dataset
 
-Training and evaluation use the [MONAI](https://monai.io/) Hippocampus dataset (Medical Segmentation Decathlon Task04, `n=260` labeled cases). Volumes are not tracked in git — see [dataset/README.md](dataset/README.md) for preparation steps.
+Training and evaluation use the [MONAI](https://monai.io/) Hippocampus dataset (Medical Segmentation Decathlon Task04, `n=260` labeled cases). Volumes are not tracked in git; see [dataset/README.md](dataset/README.md) for preparation steps.
 
 ## Credits
 
-- **Dataset:** [MONAI](https://monai.io/) Hippocampus — Medical Segmentation Decathlon Task04. Cite MONAI and the MSD when publishing results using this data.
+- **Dataset:** [MONAI](https://monai.io/) Hippocampus, Medical Segmentation Decathlon Task04. Cite MONAI and the MSD when publishing results using this data.
 - **WebXR background:** Based on ["Charite University Hospital - Operating Room"](https://sketchfab.com/3d-models/charite-university-hospital-operating-room-9ec46c4d615a4581a235eebfb162f574) by [ChrisRE](https://sketchfab.com/ChrisRE), licensed [CC-BY-NC-4.0](http://creativecommons.org/licenses/by-nc/4.0/). See [`frontend/public/xr/backgrounds/hospital/license.txt`](frontend/public/xr/backgrounds/hospital/license.txt).
 
 Full third-party notices: [NOTICE](NOTICE).
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE) and the [v1.0.0-coord-attention](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) release.
+Apache License 2.0, see [LICENSE](LICENSE) and the [v1.0.0-coord-attention](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) release.
 
 **Carve-out:** `frontend/public/xr/backgrounds/hospital/` is CC-BY-NC-4.0 (not Apache). Credit required; no commercial use of that asset.

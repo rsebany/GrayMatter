@@ -11,7 +11,7 @@ Pins and commands for reproducing training, OOF evaluation, and the Docker platf
 | PyTorch | `>=2.5.0` |
 | Config | `ai/configs/hybrid_attention_v1.json` (`skip_mode: "coord_only"`) |
 | Checkpoint | `ai/checkpoints/model.pt` (fold 4) |
-| Architecture | `hybrid_attunet` — Hybrid Attention U-Net (Coordinate Attention) |
+| Architecture | `hybrid_attunet`, Hybrid Attention U-Net (Coordinate Attention) |
 | Release | [`v1.0.0-coord-attention`](https://github.com/rsebany/GrayMatter/releases/tag/v1.0.0-coord-attention) |
 | Dataset | MSD Task04 Hippocampus via official MONAI Decathlon download |
 

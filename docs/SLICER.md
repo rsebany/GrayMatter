@@ -71,7 +71,7 @@ python scripts/integrations/slicer_connect.py push `
 
 ### 5. Verify
 
-Open **View 3D** or **WebXR** — mesh updates via SSE. Check status:
+Open **View 3D** or **WebXR**, mesh updates via SSE. Check status:
 ```powershell
 python scripts/integrations/slicer_connect.py status --study-id ST-abc12345
 ```

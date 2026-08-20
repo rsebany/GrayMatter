@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
-import tempfile
+import sys
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+
+# Ensure ai/ is on sys.path for bare imports used throughout the codebase.
+_AI_ROOT = str(Path(__file__).resolve().parents[1])
+if _AI_ROOT not in sys.path:
+    sys.path.insert(0, _AI_ROOT)
 
 from configs.experiment_config import ExperimentConfig
 from models.hybrid_attention_unet import (

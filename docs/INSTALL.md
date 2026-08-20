@@ -17,8 +17,8 @@ New-Item -ItemType Directory -Force -Path ai/checkpoints | Out-Null
 docker compose up --build -d
 ```
 
-Open http://localhost — `researcher@graymatter.local` / `researcher12345`  
-(local Docker seed only; set via `SEED_*` in `.env` — see `.env.example`)
+Open http://localhost, `researcher@graymatter.local` / `researcher12345`  
+(local Docker seed only; set via `SEED_*` in `.env`, see `.env.example`)
 
 | Service | URL |
 |---------|-----|
