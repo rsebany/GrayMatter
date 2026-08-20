@@ -51,17 +51,15 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install pytest pytest-cov numpy
-          pip install -r backend/requirements-api.txt
+          pip install pytest pytest-cov
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r backend/requirements-api.txt -r ai/requirements.txt
 
       - name: Run backend tests
         run: pytest backend/tests/ -v --tb=short
         env:
           GRAYMATTER_JWT_SECRET: ci-test-secret
           DATABASE_URL: sqlite:///test.db
-
-      - name: Install AI test dependencies
-        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
       - name: Run AI unit tests
         run: pytest ai/tests/ -v --tb=short -p no:cacheprovider
