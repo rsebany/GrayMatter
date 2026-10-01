@@ -13,7 +13,7 @@
 
 ---
 
-GrayMatter is an open-source platform for automated segmentation of hippocampal subregions (left/right) from 3D MRI volumes. It combines a 3D U-Net with **Coordinate Inter-Slice Attention (CISA)**, a novel skip-connection module that uses triaxial coordinate gating to suppress noisy encoder features before fusion with the decoder.
+GrayMatter is an open-source platform for automated segmentation of hippocampal subregions (left/right) from 3D MRI volumes. It combines a 3D U-Net with **Coordinate Inter-Slice Attention (CISA)**, a skip-connection module that uses triaxial coordinate gating to suppress noisy encoder features before fusion with the decoder.
 
 The platform ships as a full-stack application: a PyTorch inference backend, a FastAPI server, and a Next.js + WebXR viewer for 3D visualization.
 
